@@ -1,0 +1,799 @@
+<![CDATA[<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#cfe6f6">
+<title>生日快乐</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#eef6fc; --bg2:#cfe6f6; --bg3:#a7cdec;
+    --accent:#2f7fc4; --accent2:#4aa6de; --accent3:#1f5f97;
+    --deep:#123a5c; --soft:#3f6b8f; --line:#5b93c0;
+    --paper:#f6fbfe; --ink:#123a5c; --ink-soft:#3f6b8f;
+    --serif:'Noto Serif SC','Songti SC','SimSun',serif;
+    --hand:'Ma Shan Zheng','STKaiti','KaiTi',cursive;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  button,.mem-item,.env-flap,.env-seal,.env-letter,#lightbox,.mem-back{touch-action:manipulation}
+  html,body{height:100%}
+  body{
+    font-family:var(--serif);color:var(--deep);
+    background:linear-gradient(125deg,var(--bg1) 0%,var(--bg2) 38%,var(--bg3) 62%,var(--bg2) 100%);
+    background-size:280% 280%;
+    animation:bgDrift 26s ease-in-out infinite alternate;
+    overflow:hidden;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  }
+  @keyframes bgDrift{0%{background-position:0% 0%}100%{background-position:100% 100%}}
+
+  /* ---------- 背景视差层 + 动态模糊网格 ---------- */
+  #scene{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+  .mesh{position:absolute;inset:-22%;filter:blur(42px);opacity:.5;mix-blend-mode:multiply;will-change:transform;
+    background:
+      radial-gradient(38% 42% at 22% 30%,rgba(74,166,222,.55),transparent 70%),
+      radial-gradient(42% 46% at 78% 24%,rgba(47,127,196,.46),transparent 72%),
+      radial-gradient(46% 50% at 60% 78%,rgba(127,196,236,.55),transparent 70%),
+      radial-gradient(40% 44% at 28% 74%,rgba(31,95,151,.36),transparent 72%);
+    animation:meshMove 30s ease-in-out infinite alternate}
+  @keyframes meshMove{
+    0%{transform:translate(-3%,-2%) rotate(0deg) scale(1)}
+    50%{transform:translate(4%,3%) rotate(4deg) scale(1.14)}
+    100%{transform:translate(-2%,4%) rotate(-3deg) scale(1.06)}}
+  .layer{position:absolute;inset:-8%;will-change:transform;transition:transform .35s cubic-bezier(.22,.61,.36,1)}
+  .glow{position:absolute;border-radius:50%;filter:blur(66px);opacity:.5;mix-blend-mode:multiply;will-change:transform;
+    animation:glowFloat 24s ease-in-out infinite alternate}
+  @keyframes glowFloat{
+    0%{transform:translate(-4%,-3%) scale(1)}
+    50%{transform:translate(6%,4%) scale(1.2)}
+    100%{transform:translate(-2%,5%) scale(1.08)}}
+  .g1{width:46vmax;height:46vmax;left:-6vmax;top:-8vmax;background:radial-gradient(circle,var(--accent2) 0%,transparent 62%);animation-duration:24s}
+  .g2{width:40vmax;height:40vmax;right:-8vmax;top:22vmax;background:radial-gradient(circle,var(--line) 0%,transparent 60%);animation-duration:31s;animation-delay:-7s}
+  .g3{width:34vmax;height:34vmax;left:30vmax;bottom:-10vmax;background:radial-gradient(circle,var(--accent) 0%,transparent 64%);animation-duration:27s;animation-delay:-13s}
+  .bokeh{position:absolute;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.95),rgba(74,166,222,.4) 60%,transparent 70%);opacity:0;animation:rise linear infinite}
+  @keyframes rise{0%{transform:translateY(0) scale(.6);opacity:0}12%{opacity:.85}88%{opacity:.5}100%{transform:translateY(-118vh) scale(1);opacity:0}}
+
+  /* ---------- 背景淡显角色装饰（透明PNG+alpha淡显，四角错落，大小/浓淡/动画各异，不铺满） ---------- */
+  .deco{position:absolute;height:auto;
+    filter:saturate(.95) drop-shadow(0 6px 18px rgba(47,127,196,.16));
+    transform-origin:bottom center;
+    will-change:transform;pointer-events:none;user-select:none;-webkit-user-drag:none}
+  .deco.d1{right:3vmax;bottom:2vmax;width:34vmin;max-width:320px;opacity:.55;animation:decoFloat 10s ease-in-out infinite alternate}
+  .deco.d2{left:3vmax;top:3vmax;width:24vmin;max-width:230px;opacity:.42;animation:decoFloat 13s ease-in-out infinite alternate-reverse}
+  .deco.d3{left:2vmax;bottom:3vmax;width:20vmin;max-width:200px;opacity:.38;animation:decoSway 15s ease-in-out infinite alternate}
+  .deco.d4{right:4vmax;top:4vmax;width:22vmin;max-width:210px;opacity:.40;animation:decoSway 12s ease-in-out infinite alternate-reverse}
+  @keyframes decoFloat{0%{transform:translateY(0) rotate(-1.2deg)}100%{transform:translateY(-15px) rotate(1.2deg)}}
+  @keyframes decoSway{0%{transform:translateY(0) rotate(1.4deg)}100%{transform:translateY(-11px) rotate(-1.4deg)}}
+
+  /* ---------- 烟花画布 ---------- */
+  #fx{position:fixed;inset:0;z-index:3;pointer-events:none;display:none}
+
+  /* ---------- 通用遮罩/弹窗 ---------- */
+  .overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:24px;
+    background:rgba(238,246,252,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:1;transition:opacity .5s ease}
+  .hidden{display:none !important}
+  .fade-out{opacity:0;pointer-events:none}
+
+  .card{width:min(440px,92vw);background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(238,246,252,.94));
+    border:1px solid rgba(47,127,196,.28);border-radius:22px;padding:34px 30px 30px;text-align:center;
+    box-shadow:0 24px 60px rgba(31,95,151,.22), inset 0 1px 0 rgba(255,255,255,.8);animation:pop .55s cubic-bezier(.22,.61,.36,1) both}
+  @keyframes pop{from{transform:translateY(14px) scale(.96);opacity:0}to{transform:none;opacity:1}}
+
+  .eyebrow{font-size:13px;letter-spacing:.32em;color:var(--accent);text-transform:uppercase;margin-bottom:14px;opacity:.9}
+  .title{font-family:var(--hand);font-size:38px;line-height:1.15;color:var(--deep);margin-bottom:16px}
+  .line1{font-size:16px;line-height:1.9;color:var(--deep);opacity:.9;margin-bottom:8px}
+  .line2{font-size:15px;line-height:1.8;color:var(--soft);opacity:.95;margin-bottom:22px}
+  .count{display:flex;align-items:baseline;justify-content:center;gap:8px;margin:6px 0 22px}
+  .count .num{font-family:var(--hand);font-size:64px;color:var(--accent);line-height:1;text-shadow:0 4px 24px rgba(47,127,196,.28)}
+  .count .unit{font-size:16px;color:var(--deep);opacity:.8}
+
+  /* ---------- 非生日等待页 ---------- */
+  #waitScreen{background:rgba(238,246,252,.35);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+  .wait-wrap{text-align:center;padding:24px;animation:pop .6s cubic-bezier(.22,.61,.36,1) both}
+  .wait-title{font-family:var(--hand);font-size:clamp(34px,9vw,52px);color:var(--deep);margin:6px 0 18px}
+  .wait-count{display:flex;align-items:baseline;justify-content:center;gap:12px;margin-bottom:20px}
+  .wait-num{font-family:var(--hand);font-size:clamp(72px,22vw,128px);color:var(--accent);line-height:1;text-shadow:0 6px 34px rgba(47,127,196,.3)}
+  .wait-unit{font-size:18px;color:var(--deep);opacity:.8}
+  .wait-msg{font-size:15px;line-height:1.9;color:var(--soft);opacity:.95;max-width:340px;margin:0 auto}
+
+  /* ---------- 磁吸按钮 ---------- */
+  .btn{position:relative;font-family:var(--serif);font-size:16px;font-weight:600;letter-spacing:.06em;color:#fff;
+    background:linear-gradient(180deg,var(--accent2),var(--accent));border:none;border-radius:999px;padding:14px 34px;cursor:pointer;
+    box-shadow:0 10px 26px rgba(47,127,196,.35), inset 0 1px 0 rgba(255,255,255,.5);
+    transition:transform .25s cubic-bezier(.22,.61,.36,1), box-shadow .25s ease, filter .25s ease;will-change:transform}
+  @media (hover:hover){.btn:hover{filter:brightness(1.05);box-shadow:0 14px 34px rgba(47,127,196,.45), inset 0 1px 0 rgba(255,255,255,.6)}}
+  .btn:active{transform:scale(.96);box-shadow:0 4px 14px rgba(47,127,196,.5), inset 0 1px 0 rgba(255,255,255,.5)}
+  .btn.pressing{box-shadow:0 4px 16px rgba(47,127,196,.5), 0 0 0 5px rgba(74,166,222,.22);filter:brightness(1.08)}
+  .btn:focus-visible{outline:2px solid var(--accent3);outline-offset:3px}
+
+  /* ---------- 信封舞台 ---------- */
+  #envelopeScene{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:28px 18px;gap:22px;clip-path:circle(0px at 50% 50%);will-change:clip-path,opacity}
+  .big-title{font-family:var(--hand);font-size:clamp(34px,9vw,60px);color:var(--accent);text-shadow:0 6px 30px rgba(47,127,196,.3);
+    opacity:0;transform:translateY(16px);transition:opacity .8s ease,transform .8s cubic-bezier(.22,.61,.36,1)}
+  .big-title.show{opacity:1;transform:none}
+
+  .envelope-wrap{perspective:1400px}
+  .envelope{position:relative;width:min(320px,76vw);aspect-ratio:3/2;transform-style:preserve-3d;
+    transform:scale(.4) translateY(40px) rotate(-6deg);opacity:0;
+    transition:transform .75s cubic-bezier(.34,1.5,.64,1),opacity .5s ease}
+  .envelope.in{transform:scale(1) translateY(0) rotate(0);opacity:1}
+  .env-back{position:absolute;inset:0;background:linear-gradient(180deg,#eaf4fc,#cfe6f6);border-radius:14px;
+    box-shadow:0 26px 54px rgba(31,95,151,.34), inset 0 0 0 1px rgba(255,255,255,.6);z-index:1}
+  /* 信纸：默认整张藏在前袋之后，尺寸收进信封内，绝不外露（修复透出 bug） */
+  .env-letter{position:absolute;left:6%;top:10%;width:88%;height:78%;z-index:2;
+    background:linear-gradient(180deg,var(--paper),#eaf4fb);border-radius:8px;overflow:hidden;
+    box-shadow:0 6px 16px rgba(31,95,151,.22);cursor:pointer;transform:translateY(6%);
+    transition:transform .72s cubic-bezier(.22,.61,.36,1)}
+  .env-letter .peek{padding:15px 16px;color:var(--ink-soft);font-family:var(--hand);font-size:19px;text-align:center}
+  .env-letter .peek .arrow{display:block;font-size:13px;color:var(--accent);margin-top:6px;font-family:var(--serif);letter-spacing:.08em}
+  /* 前袋：整面实心矩形，完全遮住信纸（关键修复） */
+  .env-pocket{position:absolute;inset:0;z-index:3;border-radius:14px;
+    background:linear-gradient(180deg,#dcecf7,#c4ddf0);
+    box-shadow:inset 0 2px 8px rgba(255,255,255,.55), inset 0 -1px 0 rgba(31,95,151,.12)}
+  .env-pocket::before{content:"";position:absolute;inset:0;opacity:.7;
+    background:
+      linear-gradient(115deg,transparent 46%,rgba(31,95,151,.12) 50%,transparent 54%),
+      linear-gradient(65deg,transparent 46%,rgba(31,95,151,.12) 50%,transparent 54%)}
+  /* 翻盖：默认合上盖住顶部，掀开时翻到背面（spring 回弹） */
+  .env-flap{position:absolute;left:0;top:0;width:100%;height:64%;z-index:5;transform-origin:top center;transform:rotateX(0deg);
+    transition:transform .9s cubic-bezier(.34,1.28,.64,1),z-index 0s .45s;
+    clip-path:polygon(0 0,100% 0,50% 100%);
+    background:linear-gradient(180deg,#d6e9f6,#bcd9ee);cursor:pointer;
+    box-shadow:0 4px 10px rgba(31,95,151,.18)}
+  .envelope.flap-open .env-flap{transform:rotateX(-178deg);z-index:0}
+  /* 信纸抽出：掀盖后上移露出预览 */
+  .envelope.letter-out .env-letter{transform:translateY(-52%)}
+  .env-seal{position:absolute;left:50%;top:56%;width:48px;height:48px;transform:translate(-50%,-50%);z-index:6;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,var(--accent2),var(--accent) 70%,var(--accent3));
+    box-shadow:0 4px 12px rgba(31,95,151,.4), inset 0 1px 2px rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;
+    color:#fff;font-family:var(--hand);font-size:22px;transition:opacity .45s ease,transform .45s ease;animation:sealPulse 2.4s ease-in-out infinite}
+  @keyframes sealPulse{0%,100%{box-shadow:0 4px 12px rgba(31,95,151,.4), inset 0 1px 2px rgba(255,255,255,.6), 0 0 0 0 rgba(74,166,222,.4)}
+    50%{box-shadow:0 4px 12px rgba(31,95,151,.4), inset 0 1px 2px rgba(255,255,255,.6), 0 0 0 12px rgba(74,166,222,0)}}
+  .envelope.flap-open .env-seal{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(28deg)}
+  .env-hint{font-size:14px;color:var(--soft);opacity:.85;letter-spacing:.04em;transition:opacity .4s ease}
+
+  /* ---------- 全屏信 ---------- */
+  #fullLetter{position:fixed;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;padding:22px;
+    background:rgba(238,246,252,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+  .full-card{width:min(560px,94vw);max-height:86vh;max-height:86dvh;display:flex;flex-direction:column;
+    background:linear-gradient(180deg,var(--paper),#eaf4fb);border-radius:18px;overflow:hidden;position:relative;
+    box-shadow:0 30px 70px rgba(31,95,151,.34), inset 0 0 0 1px rgba(255,255,255,.7);
+    transform:scale(.6);opacity:0;transition:transform .6s cubic-bezier(.22,.61,.36,1),opacity .5s ease}
+  .full-card.in{transform:scale(1);opacity:1}
+  .full-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;
+    background:repeating-linear-gradient(180deg,var(--line) 0 10px,transparent 10px 20px);opacity:.7}
+  .full-head{font-family:var(--hand);font-size:26px;color:var(--ink-soft);padding:26px 30px 6px}
+  .full-scroll{overflow-y:auto;padding:6px 30px 18px;flex:1;-webkit-overflow-scrolling:touch}
+  .fl{font-size:16px;line-height:2;color:var(--ink);opacity:0;transform:translateY(10px);
+    transition:opacity .6s ease,transform .6s cubic-bezier(.22,.61,.36,1);margin-bottom:2px}
+  .fl.show{opacity:1;transform:none}
+  .fl-sign{font-family:var(--hand);font-size:22px;color:var(--ink-soft);text-align:right;margin-top:16px;
+    opacity:0;transform:translateY(10px);transition:opacity .6s ease,transform .6s cubic-bezier(.22,.61,.36,1)}
+  .fl-sign.show{opacity:1;transform:none}
+  .full-foot{padding:16px 30px 26px;display:flex;justify-content:center;gap:14px;
+    opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s cubic-bezier(.22,.61,.36,1)}
+  .full-foot.show{opacity:1;transform:none}
+  /* 曲线删除 */
+  .full-card.leaving{transition:transform .7s cubic-bezier(.5,0,.75,.4),opacity .7s ease;
+    transform:translate(40vw,60vh) rotate(22deg) scale(.2);opacity:0}
+
+  /* ---------- 回忆集 ---------- */
+  #memories{position:fixed;inset:0;z-index:12;display:flex;flex-direction:column;align-items:center;
+    padding:34px 18px 24px;gap:18px;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;transition:opacity .7s ease}
+  #memories.in{opacity:1}
+  .mem-back{position:absolute;left:18px;top:16px;z-index:2;font-family:var(--serif);font-size:14px;
+    color:var(--accent3);background:rgba(255,255,255,.72);border:1px solid rgba(47,127,196,.35);
+    border-radius:999px;padding:8px 16px;cursor:pointer;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+    box-shadow:0 6px 16px rgba(31,95,151,.16);transition:transform .25s ease,box-shadow .25s ease,background .25s ease}
+  @media (hover:hover){.mem-back:hover{transform:translateY(-1px);background:rgba(255,255,255,.92);box-shadow:0 10px 22px rgba(31,95,151,.22)}}
+  .mem-back:active{transform:translateY(0) scale(.97)}
+  .mem-back:focus-visible{outline:2px solid var(--accent3);outline-offset:2px}
+  .mem-head{text-align:center}
+  .mem-title{font-family:var(--hand);font-size:clamp(30px,8vw,46px);color:var(--accent)}
+  .mem-sub{font-size:14px;color:var(--soft);margin-top:6px}
+  .mem-grid{width:min(760px,96vw);display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:14px}
+  .mem-item{position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;cursor:pointer;
+    background:linear-gradient(135deg,#dcecf7,#bcd9ee);box-shadow:0 10px 26px rgba(31,95,151,.22);
+    transform:translateY(24px) scale(.92);opacity:0;transition:transform .6s cubic-bezier(.22,.61,.36,1),opacity .6s ease,box-shadow .3s ease}
+  .mem-item.in{transform:none;opacity:1}
+  .mem-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.22,.61,.36,1)}
+  @media (hover:hover){.mem-item:hover img{transform:scale(1.06)}}
+  .mem-item .cap{position:absolute;left:0;right:0;bottom:0;padding:16px 12px 10px;font-size:13px;color:#fff;
+    background:linear-gradient(180deg,transparent,rgba(18,58,92,.7));opacity:0;transition:opacity .35s ease}
+  @media (hover:hover){.mem-item:hover .cap{opacity:1}}
+  @media (hover:none){.mem-item .cap{opacity:1}}
+  .mem-item.noimg{display:flex;align-items:center;justify-content:center;color:var(--accent3);font-family:var(--hand);font-size:20px}
+  .mem-empty{width:min(760px,96vw);text-align:center;color:var(--soft);font-size:14px;line-height:1.9;padding:20px;
+    border:1px dashed rgba(47,127,196,.4);border-radius:14px}
+
+  /* ---------- lightbox ---------- */
+  #lightbox{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;
+    background:rgba(18,58,92,.82);backdrop-filter:blur(6px);padding:24px;opacity:0;transition:opacity .4s ease;cursor:zoom-out}
+  #lightbox.in{opacity:1}
+  #lightbox img{max-width:92vw;max-height:78vh;max-height:78dvh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5);
+    transform:scale(.9);transition:transform .5s cubic-bezier(.22,.61,.36,1)}
+  #lightbox.in img{transform:scale(1)}
+  .lb-cap{color:#eaf4fb;font-size:15px;letter-spacing:.04em}
+  .lb-close{position:absolute;top:20px;right:22px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.5);
+    background:rgba(255,255,255,.1);color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+  .hint{font-size:13px;color:var(--soft);opacity:.7;letter-spacing:.04em}
+
+  @media (max-width:420px){
+    .title{font-size:32px}.card{padding:28px 22px 24px}.full-head{padding:22px 22px 4px}
+    .full-scroll{padding:4px 22px 12px}.full-foot{padding:12px 22px 22px}
+  }
+
+  /* ---------- reduced-motion ---------- */
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms !important;animation-iteration-count:1 !important}
+    body{animation:none}
+	    .mesh,.glow,.layer,.bokeh{transition:none !important;animation:none !important}
+	    .bokeh{display:none}
+	    .deco{animation:none !important}
+	    .env-seal{animation:none}
+  }
+</style>
+</head>
+<body>
+
+  <div id="scene" aria-hidden="true">
+    <div class="mesh"></div>
+    <div class="layer" data-depth="0.4"><span class="glow g1"></span></div>
+    <div class="layer" data-depth="0.8"><span class="glow g2"></span></div>
+    <div class="layer" data-depth="1.2"><span class="glow g3"></span></div>
+    <div class="layer" data-depth="1.6" id="bokehLayer"></div>
+    <img class="deco d1" data-src="miku.png" alt="" aria-hidden="true" draggable="false">
+    <img class="deco d2" data-src="luotianyi.png" alt="" aria-hidden="true" draggable="false">
+    <img class="deco d3" data-src="kagamine.png" alt="" aria-hidden="true" draggable="false">
+    <img class="deco d4" data-src="teto.png" alt="" aria-hidden="true" draggable="false">
+  </div>
+
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <!-- 信封舞台（生日当天，圆形扩散揭示） -->
+  <div id="envelopeScene" class="hidden" aria-label="生日祝福">
+    <h1 class="big-title" id="bigTitle">生日快乐</h1>
+    <div class="envelope-wrap">
+      <div class="envelope" id="envelope">
+        <div class="env-back"></div>
+        <div class="env-letter" id="envLetter"><div class="peek" id="envPeek"></div></div>
+        <div class="env-pocket"></div>
+        <div class="env-flap" id="envFlap"></div>
+        <div class="env-seal" id="envSeal">开</div>
+      </div>
+    </div>
+    <p class="env-hint" id="envHint">轻触封口，拆开这封信</p>
+  </div>
+
+  <!-- 全屏信 -->
+  <div id="fullLetter" class="hidden" role="dialog" aria-modal="true" aria-labelledby="fullHeading">
+    <div class="full-card" id="fullCard">
+      <div class="full-head" id="fullHeading"></div>
+      <div class="full-scroll" id="fullBody"></div>
+      <div class="full-foot" id="fullFoot">
+        <button class="btn" id="acceptBtn" type="button">我收下</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 回忆集 -->
+  <div id="memories" class="hidden" aria-label="回忆集">
+    <button class="mem-back" id="memBack" type="button" aria-label="回到信">‹ 回到信</button>
+    <div class="mem-head">
+      <h2 class="mem-title" id="memTitle">我们的回忆</h2>
+      <p class="mem-sub" id="memSub">谢谢你，陪我走过这些瞬间</p>
+    </div>
+    <div class="mem-grid" id="memGrid"></div>
+  </div>
+
+  <!-- lightbox -->
+  <div id="lightbox" class="hidden" role="dialog" aria-modal="true">
+    <button class="lb-close" id="lbClose" type="button" aria-label="关闭">×</button>
+    <img id="lbImg" alt="">
+    <div class="lb-cap" id="lbCap"></div>
+  </div>
+
+  <!-- 非生日：倒计时弹窗 -->
+  <div id="lockScreen" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+    <div class="card">
+      <p class="eyebrow">A LITTLE SURPRISE</p>
+      <h2 class="title" id="lockTitle"></h2>
+      <div class="count" id="countWrap"><span class="num" id="countNum">?</span><span class="unit">天后</span></div>
+      <p class="line1" id="lockLine1"></p>
+      <p class="line2" id="lockLine2"></p>
+      <button class="btn" id="lockBtn" type="button"></button>
+    </div>
+  </div>
+
+  <!-- 非生日：等待页 -->
+  <div id="waitScreen" class="overlay hidden" role="dialog" aria-modal="false" aria-labelledby="waitTitle">
+    <div class="wait-wrap">
+      <p class="eyebrow">COUNTDOWN</p>
+      <h2 class="wait-title" id="waitTitle"></h2>
+      <div class="wait-count"><span class="wait-num" id="waitNum">?</span><span class="wait-unit">天后开启</span></div>
+      <p class="wait-msg" id="waitMsg"></p>
+    </div>
+  </div>
+
+  <!-- 生日：祝福弹窗 -->
+  <div id="blessPopup" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="blessTitle">
+    <div class="card">
+      <p class="eyebrow">HAPPY BIRTHDAY</p>
+      <h2 class="title" id="blessTitle"></h2>
+      <p class="line1" id="blessLine1"></p>
+      <p class="line2" id="blessMsg"></p>
+      <button class="btn" id="blessBtn" type="button"></button>
+    </div>
+  </div>
+
+<script>
+/* ============================================================
+   CONFIG —— 只需修改这一块
+   ============================================================ */
+const CONFIG = {
+  name: "监护",
+  sender: "崽崽",
+  birthday: { month: 1, day: 22 },
+  exactTime: null,
+	  forceBirthday: false,         // false=按真实日期自动判断（仅生日当天进流程）；想提前浏览全部流程可临时改 true
+
+  notDay: {
+    title: "还没到那一天哦",
+    line1: "我在偷偷准备一份小礼物。",
+    line2: "等 TA 生日那天再打开，会更惊喜。",
+    button: "好的，我等着",
+    waitTitle: "生日那天见",
+    waitMsg: "这里会为你打开一封信。在那之前，先让我守着这份小惊喜。"
+  },
+
+  bless: {
+    title: "{name}，生日快乐",
+    line1: "这一天终于到了。",
+    message: "先替我把这句话送到你面前，剩下的，都写在那封信里。",
+    button: "确定"
+  },
+
+  // 信封里那封信
+  letter: {
+    heading: "写给你的一封信",
+    peek: "给你的一封信",           // 信封抽出时露出的预览
+    body: [
+      "{name}，生日快乐！",
+      "遇见你的时候，我还是那个基本不社交、有点孤僻的小男生。我不太会主动开口，也不太知道怎么跟人相处，很多时候宁愿一个人待着，因为那样比较安全，不会说错话，也不会被拒绝。",
+      "可偏偏就是那一天，偏偏就是在墓土罚站的时候，我遇见了你。",
+      "生日到了，又长大了 1 岁，嘿嘿，也又老了 1 岁。女大十八变，那恭喜你，离更漂亮又近了一步呦。",
+      "最后祝你健健康康，快快乐乐，烦心事少一点，万事顺利，想做的事都能做成。还有别总熬夜，对身体不好，头发也掉的多。",
+      "愿你被这个世界温柔以待，愿你的每一个愿望都慢慢实现，愿你眼里总有光，身边总有爱。",
+      "往后的每一年，我都想陪你一起过生日。",
+      "生日快乐。"
+    ],
+    sign: "{sender}"
+  },
+
+  // 回忆集：把照片放进同目录的 memories/ 文件夹，然后在这里填文件名与说明
+  // 例：{ src: "memories/1.jpg", caption: "第一次一起看海" }
+  memories: {
+    title: "我们的回忆",
+    sub: "谢谢你，陪我走过这些瞬间",
+    items: [
+      { src: "memories/p01.jpg", caption: "2026年5月23日" },
+      { src: "memories/p02.jpg", caption: "2026年5月23日" },
+      { src: "memories/p03.jpg", caption: "2026年5月23日" },
+      { src: "memories/p04.jpg", caption: "2026年5月23日" },
+      { src: "memories/p05.jpg", caption: "2026年5月30日" },
+      { src: "memories/p06.jpg", caption: "2026年5月30日" },
+      { src: "memories/p07.jpg", caption: "2026年6月19日" },
+      { src: "memories/p08.jpg", caption: "2026年6月20日" },
+      { src: "memories/p09.jpg", caption: "2026年7月13日" },
+      { src: "memories/p10.jpg", caption: "2026年7月18日" },
+      { src: "memories/p11.jpg", caption: "2026年7月19日" },
+      { src: "memories/p12.jpg", caption: "2026年7月19日" },
+      { src: "memories/p13.jpg", caption: "2026年7月19日" },
+      { src: "memories/p14.jpg", caption: "2026年7月19日" },
+      { src: "memories/p15.jpg", caption: "2026年7月19日" },
+      { src: "memories/p16.jpg", caption: "2026年7月26日" },
+      { src: "memories/p17.jpg", caption: "2026年7月28日" },
+      { src: "memories/p18.jpg", caption: "2026年8月12日" },
+      { src: "memories/p19.jpg", caption: "2026年8月15日" },
+      { src: "memories/p20.jpg", caption: "2026年8月20日" },
+      { src: "memories/p21.jpg", caption: "2026年8月22日" },
+      { src: "memories/p22.jpg", caption: "2026年8月23日" },
+      { src: "memories/p23.jpg", caption: "2026年8月23日" },
+      { src: "memories/p24.jpg", caption: "2026年8月24日" },
+      { src: "memories/p25.jpg", caption: "2026年8月25日" },
+      { src: "memories/p26.jpg", caption: "2026年8月25日" },
+      { src: "memories/p27.jpg", caption: "2026年8月25日" },
+      { src: "memories/p28.jpg", caption: "2026年8月25日" },
+      { src: "memories/p29.jpg", caption: "2026年8月26日" },
+      { src: "memories/p30.jpg", caption: "2026年9月24日" },
+      { src: "memories/p31.jpg", caption: "2026年9月24日" },
+      { src: "memories/p32.jpg", caption: "2026年9月24日" },
+      { src: "memories/p33.jpg", caption: "珍贵回忆" }
+    ]
+  }
+};
+
+/* ============================================================
+   工具
+   ============================================================ */
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const noHover = window.matchMedia('(hover: none)').matches;
+const fill = (s) => s.replaceAll('{name}', CONFIG.name).replaceAll('{sender}', CONFIG.sender);
+const easeOutCubic = (k) => 1 - Math.pow(1 - k, 3);
+const $ = (id) => document.getElementById(id);
+// 图片解析：优先使用内嵌的 base64 数据(window.__IMAGES)，否则回退到相对路径文件
+const IMG = (src) => (window.__IMAGES && window.__IMAGES[src]) ? window.__IMAGES[src] : src;
+
+function startOfToday(){ const n=new Date(); return new Date(n.getFullYear(),n.getMonth(),n.getDate()); }
+function isBirthdayToday(){
+  const n=new Date(), m=CONFIG.birthday.month-1, d=CONFIG.birthday.day;
+  if(CONFIG.exactTime){ const [hh,mm]=CONFIG.exactTime.split(':').map(Number);
+    const start=new Date(n.getFullYear(),m,d,hh,mm,0); return n.getMonth()===m && n.getDate()===d && n>=start; }
+  return n.getMonth()===m && n.getDate()===d;
+}
+function daysUntilBirthday(){
+  const today=startOfToday(), m=CONFIG.birthday.month-1, d=CONFIG.birthday.day;
+  let target=new Date(today.getFullYear(),m,d);
+  if(target<today) target=new Date(today.getFullYear()+1,m,d);
+  return Math.round((target-today)/86400000);
+}
+
+/* ============================================================
+   文案渲染
+   ============================================================ */
+function renderTexts(){
+  $('lockTitle').textContent=fill(CONFIG.notDay.title);
+  $('lockLine1').textContent=fill(CONFIG.notDay.line1);
+  $('lockLine2').textContent=fill(CONFIG.notDay.line2);
+  $('lockBtn').textContent=fill(CONFIG.notDay.button);
+  $('waitTitle').textContent=fill(CONFIG.notDay.waitTitle);
+  $('waitMsg').textContent=fill(CONFIG.notDay.waitMsg);
+  $('blessTitle').textContent=fill(CONFIG.bless.title);
+  $('blessLine1').textContent=fill(CONFIG.bless.line1);
+  $('blessMsg').textContent=fill(CONFIG.bless.message);
+  $('blessBtn').textContent=fill(CONFIG.bless.button);
+  $('envPeek').innerHTML = fill(CONFIG.letter.peek) + '<span class="arrow">点击信纸展开 ›</span>';
+  $('fullHeading').textContent = fill(CONFIG.letter.heading);
+  const body=$('fullBody'); body.innerHTML='';
+  CONFIG.letter.body.forEach(t=>{ const p=document.createElement('p'); p.className='fl'; p.textContent=fill(t); body.appendChild(p); });
+  const s=document.createElement('p'); s.className='fl-sign'; s.textContent=fill(CONFIG.letter.sign); body.appendChild(s);
+  $('memTitle').textContent=fill(CONFIG.memories.title);
+  $('memSub').textContent=fill(CONFIG.memories.sub);
+}
+
+/* ============================================================
+   视差背景 + 漂浮光点
+   ============================================================ */
+function buildBokeh(){
+  if(reduce) return;
+  const layer=$('bokehLayer');
+  for(let i=0;i<14;i++){
+    const b=document.createElement('span'); b.className='bokeh';
+    const size=6+Math.random()*16;
+    b.style.width=b.style.height=size+'px';
+    b.style.left=Math.random()*100+'%';
+    b.style.top=(100+Math.random()*20)+'%';
+    b.style.animationDuration=(10+Math.random()*12)+'s';
+    b.style.animationDelay=(-Math.random()*12)+'s';
+    layer.appendChild(b);
+  }
+}
+function initParallax(){
+  if(reduce||noHover) return;
+  const layers=[...document.querySelectorAll('.layer')];
+  addEventListener('pointermove',e=>{
+    const nx=e.clientX/innerWidth-0.5, ny=e.clientY/innerHeight-0.5;
+    layers.forEach(l=>{ const d=+l.dataset.depth; l.style.transform=`translate(${nx*d*26}px,${ny*d*26}px)`; });
+  },{passive:true});
+}
+
+/* ============================================================
+   磁吸按钮
+   ============================================================ */
+function magnet(btn){
+  if(reduce) return;
+  if(noHover){
+    const up=()=>{ btn.classList.remove('pressing'); btn.style.transform=''; };
+    btn.addEventListener('pointerdown',()=>{ btn.classList.add('pressing'); btn.style.transform='scale(.94)'; });
+    btn.addEventListener('pointerup',up);
+    btn.addEventListener('pointercancel',up);
+    return;
+  }
+  const strength=0.32, radius=130;
+  btn.addEventListener('pointermove',e=>{
+    const r=btn.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
+    const dx=e.clientX-cx, dy=e.clientY-cy;
+    if(Math.hypot(dx,dy)<radius) btn.style.transform=`translate(${dx*strength}px,${dy*strength}px)`;
+  });
+  btn.addEventListener('pointerleave',()=>{ btn.style.transform=''; });
+}
+
+/* ============================================================
+   圆形扩散揭示信封舞台（Radial Theme Transition）
+   ============================================================ */
+function revealEnvelope(x,y){
+  const scene=$('envelopeScene');
+  const bless=$('blessPopup');
+  scene.classList.remove('hidden');
+  $('bigTitle').textContent=fill(CONFIG.bless.title);
+
+  const finish=()=>{
+    scene.style.clipPath='none';
+    bless.classList.add('fade-out');
+    setTimeout(()=>bless.classList.add('hidden'),500);
+    $('bigTitle').classList.add('show');
+    // 信封生动弹入
+    setTimeout(()=>{ $('envelope').classList.add('in'); }, reduce?0:200);
+    startFx();
+  };
+
+  if(reduce){
+    scene.style.opacity='0';
+    requestAnimationFrame(()=>{ scene.style.transition='opacity .6s ease'; scene.style.opacity='1'; finish(); });
+    return;
+  }
+  const maxR=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));
+  const dur=950, t0=performance.now();
+  scene.style.clipPath=`circle(0px at ${x}px ${y}px)`;
+  (function step(t){
+    const k=Math.min(1,(t-t0)/dur), e=easeOutCubic(k);
+    scene.style.clipPath=`circle(${e*maxR}px at ${x}px ${y}px)`;
+    if(k<1) requestAnimationFrame(step); else finish();
+  })(t0);
+}
+
+/* ============================================================
+   信封交互状态机（两段式：先掀盖，再抽出信纸）
+   ============================================================ */
+let envState='closed';
+function resetEnvelope(){
+  envState='closed';
+  const env=$('envelope');
+  env.classList.remove('flap-open','letter-out');
+  $('envHint').textContent='轻触封口，拆开这封信';
+}
+function bindEnvelope(){
+  const env=$('envelope'), flap=$('envFlap'), seal=$('envSeal'), letter=$('envLetter');
+  const openEnv=()=>{
+    if(envState!=='closed') return;
+    envState='opened';
+    // 第一段：掀盖（spring 回弹）
+    env.classList.add('flap-open');
+    $('envHint').textContent='点击信纸，展开完整内容';
+    // 第二段：盖掀到一半后，信纸缓缓上移抽出露出预览
+    if(reduce){ env.classList.add('letter-out'); }
+    else { setTimeout(()=>env.classList.add('letter-out'), 520); }
+  };
+  flap.addEventListener('click',openEnv);
+  seal.addEventListener('click',openEnv);
+  letter.addEventListener('click',()=>{
+    if(envState!=='opened') return;
+    envState='expanded';
+    expandFullLetter();
+  });
+}
+
+/* ============================================================
+   全屏信展开（Shared-element 放大 + 文本展开）
+   ============================================================ */
+function expandFullLetter(){
+  const scene=$('envelopeScene'), fl=$('fullLetter'), card=$('fullCard');
+  fl.classList.remove('hidden');
+  if(reduce){
+    card.classList.add('in');
+    revealFullContent();
+    return;
+  }
+  requestAnimationFrame(()=>card.classList.add('in'));
+  setTimeout(revealFullContent, reduce?0:420);
+  // 信封舞台淡出退场
+  scene.style.transition='opacity .5s ease'; scene.style.opacity='0';
+  setTimeout(()=>scene.classList.add('hidden'),500);
+}
+function revealFullContent(){
+  const lines=[...document.querySelectorAll('#fullBody .fl')];
+  lines.forEach((el,i)=>setTimeout(()=>el.classList.add('show'),reduce?0:i*160));
+  const sign=$('fullBody').querySelector('.fl-sign');
+  setTimeout(()=>sign&&sign.classList.add('show'),reduce?0:lines.length*160+120);
+  setTimeout(()=>$('fullFoot').classList.add('show'),reduce?0:lines.length*160+260);
+}
+function revealAllContentInstant(){
+  document.querySelectorAll('#fullBody .fl').forEach(el=>el.classList.add('show'));
+  const sign=$('fullBody').querySelector('.fl-sign'); if(sign)sign.classList.add('show');
+  $('fullFoot').classList.add('show');
+}
+
+/* ============================================================
+   "我收下" → 曲线删除 → 回忆集（Curved Card Deletion）
+   ============================================================ */
+function acceptLetter(){
+  const card=$('fullCard'), fl=$('fullLetter');
+  if(reduce){
+    fl.classList.add('hidden'); showMemories(); return;
+  }
+  card.classList.add('leaving');
+  setTimeout(()=>{ fl.classList.add('hidden'); card.classList.remove('leaving'); showMemories(); },700);
+}
+
+/* ============================================================
+   回忆集（Staggered 入场 + lightbox 图片展开）
+   ============================================================ */
+function showMemories(){
+  const wrap=$('memories'), grid=$('memGrid');
+  grid.innerHTML='';
+  const items=CONFIG.memories.items.filter(Boolean);
+  if(items.length===0){
+    const e=document.createElement('div'); e.className='mem-empty';
+    e.textContent='把照片放进 memories/ 文件夹，并在 CONFIG.memories.items 里填写文件名，这里就会显示你们的回忆。';
+    grid.appendChild(e);
+  }
+  items.forEach((it,i)=>{
+    const fig=document.createElement('div'); fig.className='mem-item';
+    if(it.src){
+      const img=document.createElement('img'); img.alt=it.caption||''; img.src=IMG(it.src);
+      img.onerror=()=>{ fig.classList.add('noimg'); fig.textContent='未找到 '+it.src; img.remove(); };
+      fig.appendChild(img);
+    }else{ fig.classList.add('noimg'); fig.textContent='待放入照片'; }
+    if(it.caption){ const c=document.createElement('div'); c.className='cap'; c.textContent=fill(it.caption); fig.appendChild(c); }
+    fig.addEventListener('click',()=>openLightbox(it));
+    grid.appendChild(fig);
+    setTimeout(()=>fig.classList.add('in'), reduce?0:120+i*110);
+  });
+  wrap.classList.remove('hidden');
+  requestAnimationFrame(()=>wrap.classList.add('in'));
+}
+
+/* ============================================================
+   回忆集 → 回到信（重新展开全屏信）
+   ============================================================ */
+function backToLetter(){
+  const wrap=$('memories'), fl=$('fullLetter'), card=$('fullCard');
+  wrap.classList.remove('in');
+  setTimeout(()=>{
+    wrap.classList.add('hidden');
+    fl.classList.remove('hidden');
+    requestAnimationFrame(()=>card.classList.add('in'));
+    revealAllContentInstant();
+  }, reduce?0:400);
+}
+function bindMemBack(){
+  $('memBack').addEventListener('click',backToLetter);
+}
+
+function openLightbox(it){
+  if(!it.src) return;
+  const lb=$('lightbox');
+  $('lbImg').src=IMG(it.src); $('lbImg').alt=it.caption||'';
+  $('lbCap').textContent=fill(it.caption||'');
+  lb.classList.remove('hidden');
+  requestAnimationFrame(()=>lb.classList.add('in'));
+}
+function bindLightbox(){
+  const lb=$('lightbox');
+  const close=()=>{ lb.classList.remove('in'); setTimeout(()=>lb.classList.add('hidden'),400); };
+  lb.addEventListener('click',close);
+  $('lbClose').addEventListener('click',e=>{ e.stopPropagation(); close(); });
+  addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });
+}
+
+/* ============================================================
+   烟花（Canvas）
+   ============================================================ */
+let fxOn=false, rockets=[], sparks=[];
+function startFx(){
+  if(reduce) return;
+  const c=$('fx'); c.style.display='block'; fxOn=true;
+  const ctx=c.getContext('2d');
+  let W=innerWidth, H=innerHeight;
+  const resize=()=>{ const dpr=Math.min(window.devicePixelRatio||1,2);
+    W=innerWidth; H=innerHeight;
+    c.width=W*dpr; c.height=H*dpr;
+    c.style.width=W+'px'; c.style.height=H+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0); };
+  resize(); addEventListener('resize',resize);
+  const palette=['#2f7fc4','#4aa6de','#7fc4ec','#9fd8f2','#ffffff','#1f5f97','#5fd0e6'];
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const pick=()=>palette[(Math.random()*palette.length)|0];
+  // 预渲染发光贴图，避免逐帧 createRadialGradient（卡顿主因）
+  const SR=32, sprites={};
+  function makeSprite(color){
+    if(sprites[color]) return sprites[color];
+    const s=document.createElement('canvas'); s.width=s.height=SR*2;
+    const g=s.getContext('2d'); const grd=g.createRadialGradient(SR,SR,0,SR,SR,SR);
+    grd.addColorStop(0,color); grd.addColorStop(.35,color); grd.addColorStop(1,'rgba(0,0,0,0)');
+    g.fillStyle=grd; g.beginPath(); g.arc(SR,SR,SR,0,Math.PI*2); g.fill();
+    sprites[color]=s; return s;
+  }
+  palette.forEach(makeSprite);
+  const MAX=noHover?260:420;
+  function launch(){
+    if(!fxOn) return;
+    rockets.push({x:rand(W*0.15,W*0.85),y:H+10,vy:rand(-12,-9),tx:rand(H*0.14,H*0.4),color:pick()});
+    setTimeout(launch,noHover?rand(2400,4200):rand(1500,2800));
+  }
+  function burst(x,y,color){
+    if(sparks.length>MAX) return;
+    const n=(rand(40,60))|0, baseSp=rand(4.5,6.5);
+	    const nAdj=noHover?(n*0.6)|0:n;
+    for(let i=0;i<nAdj;i++){ const a=(Math.PI*2*i)/nAdj+rand(-.12,.12), sp=baseSp*rand(.4,1);
+      sparks.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,dec:rand(.012,.02),size:rand(2.4,3.8),color}); }
+    const tw=(rand(6,10))|0;
+    for(let i=0;i<tw;i++){ const a=rand(0,Math.PI*2), sp=rand(1,baseSp*.5);
+      sparks.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,dec:rand(.014,.024),size:rand(1.4,2.2),color:'#ffffff',twinkle:true}); }
+    const st=(rand(8,14))|0;
+    for(let i=0;i<st;i++){ const a=rand(0,Math.PI*2), sp=rand(baseSp*.9,baseSp*1.25);
+      sparks.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,dec:rand(.01,.016),size:rand(1.3,2),color:pick(),drag:.985}); }
+  }
+  (function tick(){
+    ctx.globalCompositeOperation='destination-out';
+    ctx.globalAlpha=1; ctx.fillStyle='rgba(0,0,0,0.18)';
+    ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='lighter';
+    for(let i=rockets.length-1;i>=0;i--){ const r=rockets[i]; r.y+=r.vy; r.vy+=0.14;
+      const sp=makeSprite(r.color); ctx.globalAlpha=.9;
+      ctx.drawImage(sp,r.x-6,r.y-6,12,12);
+      ctx.globalAlpha=1; ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.arc(r.x,r.y,2,0,Math.PI*2); ctx.fill();
+      if(r.y<=r.tx||r.vy>=-0.5){ burst(r.x,r.y,r.color); rockets.splice(i,1); } }
+    for(let i=sparks.length-1;i>=0;i--){ const s=sparks[i], dr=s.drag||.978;
+      s.x+=s.vx; s.y+=s.vy; s.vy+=0.05; s.vx*=dr; s.vy*=dr; s.life-=s.dec;
+      if(s.life<=0){ sparks.splice(i,1); continue; }
+      const tw=s.twinkle?(0.55+0.45*Math.sin(s.life*40)):1;
+      const rad=s.size*s.life+0.5;
+      const sp=makeSprite(s.color);
+      ctx.globalAlpha=Math.max(0,s.life)*tw;
+      ctx.drawImage(sp,s.x-rad*2.4,s.y-rad*2.4,rad*4.8,rad*4.8); }
+    ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
+    requestAnimationFrame(tick);
+  })();
+  launch();
+}
+
+/* ============================================================
+   非生日流程
+   ============================================================ */
+function showLock(){
+  const el=$('lockScreen'); el.classList.remove('hidden');
+  const d=daysUntilBirthday();
+  if(d<=0){ $('countWrap').style.display='none'; } else { $('countNum').textContent=d; }
+  magnet($('lockBtn'));
+  $('lockBtn').addEventListener('click',()=>{
+    el.classList.add('fade-out'); setTimeout(()=>el.classList.add('hidden'),500);
+    const dd=daysUntilBirthday();
+    $('waitNum').textContent = dd>0 ? dd : '即';
+    const wait=$('waitScreen'); wait.classList.remove('hidden');
+    if(reduce){ wait.style.opacity='1'; }
+    else { wait.style.opacity='0'; requestAnimationFrame(()=>{ wait.style.transition='opacity .6s ease'; wait.style.opacity='1'; }); }
+  });
+}
+function showBless(){
+  const el=$('blessPopup'); el.classList.remove('hidden');
+  const btn=$('blessBtn'); magnet(btn);
+  btn.addEventListener('click',()=>{
+    const r=btn.getBoundingClientRect();
+    revealEnvelope(r.left+r.width/2, r.top+r.height/2);
+  });
+}
+
+/* ============================================================
+   启动
+   ============================================================ */
+function boot(){
+  renderTexts(); buildBokeh(); initParallax(); bindEnvelope(); bindLightbox(); bindMemBack();
+	  [].forEach.call(document.querySelectorAll('.deco'),function(dk){ dk.src=IMG(dk.getAttribute('data-src')); dk.onerror=function(){ dk.style.display='none'; }; });
+  magnet($('acceptBtn')); $('acceptBtn').addEventListener('click',acceptLetter);
+	  const p=new URLSearchParams(location.search).get('preview');
+	  let birthday;
+	  if(CONFIG.forceBirthday) birthday=true;   // 调试模式：彻底解除日期限制，任何情况都进生日流程
+	  else if(p==='notday') birthday=false;
+	  else if(p==='birthday') birthday=true;
+	  else birthday=isBirthdayToday();
+	  if(birthday) showBless(); else showLock();
+}
+document.addEventListener('DOMContentLoaded',boot);
+</script>
+</body>
+</html>]]>
