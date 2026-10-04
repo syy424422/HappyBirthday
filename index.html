@@ -1,4 +1,4 @@
-<![CDATA[<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -236,7 +236,84 @@
 	    .deco{animation:none !important}
 	    .env-seal{animation:none}
   }
-</style>
+
+  /* ---------- 音乐播放器（右上角唱片 + 选曲面板，沿用原水蓝配色/字体） ---------- */
+  .music-fab{position:fixed;top:18px;right:18px;z-index:60;width:64px;height:64px;border-radius:50%;
+    cursor:pointer;border:none;padding:0;display:grid;place-items:center;
+    background:radial-gradient(circle at 50% 50%, #f6fbfe 0 12%, transparent 12%),
+      repeating-radial-gradient(circle at 50% 50%, #1f5f97 0 2px, #2f7fc4 2px 4px);
+    box-shadow:0 10px 30px rgba(31,95,151,.35), inset 0 0 0 2px rgba(255,255,255,.5);
+    transition:transform .3s cubic-bezier(.22,.61,.36,1), box-shadow .3s ease;
+    -webkit-tap-highlight-color:transparent}
+  .music-fab:hover{transform:scale(1.06);box-shadow:0 14px 36px rgba(31,95,151,.45), inset 0 0 0 2px rgba(255,255,255,.6)}
+  .music-fab:active{transform:scale(.95)}
+  .music-fab:focus-visible{outline:2px solid var(--accent3);outline-offset:3px}
+  .music-fab .disc{position:absolute;inset:6px;border-radius:50%;overflow:hidden;
+    background:repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.16) 0 1px, transparent 1px 5px),
+      radial-gradient(circle at 50% 50%, #4aa6de 0 22%, #2f7fc4 22% 62%, #1f5f97 62%);
+    animation:vinylSpin 6s linear infinite;animation-play-state:paused}
+  .music-fab.playing .disc{animation-play-state:running}
+  .music-fab .cover{position:absolute;inset:15px;border-radius:50%;object-fit:cover;z-index:1;opacity:0;
+    transition:opacity .45s ease;pointer-events:none}
+  .music-fab.playing .cover{opacity:1}
+  .music-fab .label{position:absolute;z-index:2;left:50%;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;
+    border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,#cfe6f6);
+    box-shadow:inset 0 0 0 1px rgba(47,127,196,.4);display:grid;place-items:center}
+  .music-fab .label::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--accent3)}
+  .music-fab .note{position:absolute;z-index:3;right:-3px;top:-3px;width:24px;height:24px;border-radius:50%;
+    background:linear-gradient(180deg,var(--accent2),var(--accent));color:#fff;font-size:12px;line-height:1;
+    display:grid;place-items:center;box-shadow:0 3px 10px rgba(47,127,196,.45);font-family:var(--serif);
+    transition:transform .2s ease}
+  .music-fab .note:hover{transform:scale(1.12)}
+  @keyframes vinylSpin{to{transform:rotate(360deg)}}
+
+  .music-mask{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:20px;
+    background:rgba(238,246,252,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    opacity:1;transition:opacity .35s ease}
+  .music-mask.hidden{display:none}
+  .music-mask.fade-out{opacity:0;pointer-events:none}
+  .music-panel{width:min(420px,94vw);max-height:min(72vh,560px);display:flex;flex-direction:column;
+    background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(238,246,252,.97));
+    border:1px solid rgba(47,127,196,.3);border-radius:22px;overflow:hidden;
+    box-shadow:0 30px 70px rgba(31,95,151,.3), inset 0 1px 0 rgba(255,255,255,.85);
+    animation:pop .5s cubic-bezier(.22,.61,.36,1) both}
+  .music-top{padding:18px 20px 12px;border-bottom:1px solid rgba(47,127,196,.14)}
+  .music-brand{font-family:var(--hand);font-size:22px;color:var(--deep);display:flex;align-items:center;gap:8px}
+  .music-brand .mini-disc{width:18px;height:18px;border-radius:50%;display:inline-block;
+    background:repeating-radial-gradient(circle,#1f5f97 0 1px,#2f7fc4 1px 3px)}
+  .music-now{margin-top:8px;font-size:13px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .music-search{display:flex;gap:8px;margin-top:12px}
+  .music-search input{flex:1;min-width:0;font-family:var(--serif);font-size:14px;color:var(--ink);
+    background:rgba(255,255,255,.85);border:1px solid rgba(47,127,196,.3);border-radius:999px;padding:9px 16px;
+    outline:none;transition:border-color .2s,box-shadow .2s}
+  .music-search input:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(74,166,222,.2)}
+  .music-search button{font-family:var(--serif);font-size:14px;color:#fff;
+    background:linear-gradient(180deg,var(--accent2),var(--accent));border:none;border-radius:999px;
+    padding:0 18px;cursor:pointer;box-shadow:0 6px 16px rgba(47,127,196,.3)}
+  .music-list{flex:1;overflow-y:auto;padding:8px 12px 14px;-webkit-overflow-scrolling:touch}
+  .music-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;cursor:pointer;
+    transition:background .2s,transform .2s}
+  .music-row:hover{background:rgba(74,166,222,.14)}
+  .music-row:active{transform:scale(.99)}
+  .music-row .idx{width:22px;text-align:center;font-family:var(--hand);font-size:16px;color:var(--accent);flex:none}
+  .music-row .mc{width:40px;height:40px;border-radius:10px;object-fit:cover;flex:none;
+    background:linear-gradient(135deg,#dcecf7,#bcd9ee)}
+  .music-row .mtxt{min-width:0;flex:1}
+  .music-row .mtitle{display:block;font-size:15px;color:var(--deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .music-row .msinger{display:block;font-size:12px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+  .music-row.active{background:rgba(47,127,196,.16);box-shadow:inset 0 0 0 1px rgba(47,127,196,.3)}
+  .music-row.active .mtitle{color:var(--accent3);font-weight:600}
+  .music-status{padding:8px 20px 4px;text-align:center;font-size:12px;color:var(--soft);font-family:var(--serif)}
+  .music-ctrl{display:flex;gap:10px;justify-content:center;padding:6px 20px 16px}
+  .music-ctrl button{font-family:var(--serif);font-size:13px;color:var(--deep);background:rgba(255,255,255,.7);
+    border:1px solid rgba(47,127,196,.3);border-radius:999px;padding:8px 20px;cursor:pointer;
+    transition:background .2s,transform .2s}
+  .music-ctrl button:hover{background:#fff}
+  .music-ctrl button:active{transform:scale(.96)}
+  @media (max-width:420px){.music-panel{max-height:82vh}.music-fab{width:56px;height:56px;top:14px;right:14px}}
+  @media (prefers-reduced-motion:reduce){.music-fab .disc{animation:none}.music-panel{animation:none}}
+
+	</style>
 </head>
 <body>
 
@@ -327,6 +404,35 @@
       <p class="line1" id="blessLine1"></p>
       <p class="line2" id="blessMsg"></p>
       <button class="btn" id="blessBtn" type="button"></button>
+    </div>
+  </div>
+
+
+  <!-- 音乐播放器（右上角唱片 + 非全屏选曲面板） -->
+  <button class="music-fab" id="musicFab" type="button" aria-label="音乐播放器，点击选择音乐">
+    <span class="disc" id="musicDisc">
+      <img class="cover" id="musicCover" alt="" aria-hidden="true">
+      <span class="label" aria-hidden="true"></span>
+    </span>
+    <span class="note" id="musicNote" role="button" tabindex="0" aria-label="播放/暂停">♪</span>
+  </button>
+  <audio id="bgmAudio" preload="none"></audio>
+  <div class="music-mask hidden" id="musicMask" role="dialog" aria-modal="true" aria-label="选择音乐">
+    <div class="music-panel" id="musicPanel">
+      <div class="music-top">
+        <div class="music-brand"><span class="mini-disc"></span>选择音乐</div>
+        <div class="music-now" id="musicNow">还没有播放，点一首喜欢的歌吧</div>
+        <div class="music-search">
+          <input id="musicSearchInput" type="search" placeholder="搜索歌名或歌手…" autocomplete="off">
+          <button id="musicSearchBtn" type="button">搜索</button>
+        </div>
+      </div>
+      <div class="music-list" id="musicList"></div>
+      <div class="music-status" id="musicStatus">支持在线搜索，选中即播放</div>
+      <div class="music-ctrl">
+        <button id="musicPlayBtn" type="button">播放</button>
+        <button id="musicCloseBtn" type="button">返回</button>
+      </div>
     </div>
   </div>
 
@@ -795,5 +901,121 @@ function boot(){
 }
 document.addEventListener('DOMContentLoaded',boot);
 </script>
-</body>
-</html>]]>
+
+<script>
+/* ============================================================
+   音乐播放器模块（自包含；API: https://api.ygking.top，CORS *）
+   本地验证可设 window.__MUSIC_MOCK = function(path){return jsonObj}
+   ============================================================ */
+(function(){
+  var API = 'https://api.ygking.top';
+  var reduceM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function el(id){ return document.getElementById(id); }
+
+  function init(){
+    var audio = el('bgmAudio'), fab = el('musicFab'), disc = el('musicDisc'),
+        note = el('musicNote'), cover = el('musicCover'),
+        mask = el('musicMask'), searchInput = el('musicSearchInput'), searchBtn = el('musicSearchBtn'),
+        list = el('musicList'), now = el('musicNow'), statusEl = el('musicStatus'),
+        playBtn = el('musicPlayBtn'), closeBtn = el('musicCloseBtn');
+    if(!fab || !audio) return;
+
+    var current = null, playing = false, seeded = false;
+
+    function setPlayingUI(p){
+      playing = p;
+      fab.classList.toggle('playing', p);
+      note.textContent = p ? '❚❚' : '♪';
+      if(playBtn) playBtn.textContent = p ? '暂停' : '播放';
+    }
+    function openPanel(){
+      mask.classList.remove('hidden','fade-out');
+      if(!seeded){ seeded = true; doSearch('生日快乐'); }
+      setTimeout(function(){ try{ searchInput.focus(); }catch(e){} }, reduceM?0:300);
+    }
+    function closePanel(){
+      mask.classList.add('fade-out');
+      setTimeout(function(){ mask.classList.add('hidden'); }, reduceM?0:350);
+    }
+    function apiGet(path){
+      if(window.__MUSIC_MOCK){ return Promise.resolve(window.__MUSIC_MOCK(path)); }
+      return fetch(API+path,{mode:'cors'}).then(function(r){
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        return r.json();
+      });
+    }
+    function fmtTime(sec){ if(!sec) return ''; var m=Math.floor(sec/60), =sec%60; return m+':'+('0'+).slice(-2); }
+
+    function doSearch(kw){
+      kw = (kw||'').trim();
+      if(!kw){ statusEl.textContent = '请输入歌名或歌手'; return; }
+      statusEl.textContent = '搜索中…'; list.innerHTML = '';
+      apiGet('/api/search?keyword='+encodeURIComponent(kw)+'&type=song&num=20').then(function(j){
+        if(j.code !== 0){ statusEl.textContent = j.message || '未找到结果'; return; }
+        var arr = (j.data && j.data.list) || [];
+        if(!arr.length){ statusEl.textContent = '没有找到「'+kw+'」'; return; }
+        statusEl.textContent = '共 '+arr.length+' 首，点击即可播放';
+        arr.forEach(function(,i){
+          var singer = (.singer||[]).map(function(x){return x.name;}).join(' / ');
+          var cov = API+'/api/song/cover?mid='+encodeURIComponent(.mid)+'&size=150';
+          var row = document.createElement('div'); row.className='music-row'; row.setAttribute('data-mid', .mid);
+          row.innerHTML = '<span class="idx">'+(i+1)+'</span>'+
+            '<img class="mc" alt="" loading="lazy">'+
+            '<span class="mtxt"><span class="mtitle"></span><span class="msinger"></span></span>';
+          var img = row.querySelector('.mc');
+          img.onerror = function(){ img.style.visibility='hidden'; };
+          img.src = cov;
+          row.querySelector('.mtitle').textContent = .title || '未知歌曲';
+          row.querySelector('.msinger').textContent = singer + (.interval ? ('  ·  '+fmtTime(.interval)) : '');
+          row.addEventListener('click', function(){ playFromRow(, cov, row); });
+          list.appendChild(row);
+        });
+      }).catch(function(e){
+        statusEl.textContent = '搜索失败：'+(e.message||'网络错误')+'（部署到 GitHub Pages 后由浏览器直连 API 即可）';
+      });
+    }
+
+    function playFromRow(, cov, row){
+      Array.prototype.forEach.call(list.querySelectorAll('.music-row'), function(r){ r.classList.remove('active'); });
+      row.classList.add('active');
+      statusEl.textContent = '解析播放链接…';
+      apiGet('/api/song/url?mid='+encodeURIComponent(.mid)+'&quality=320').then(function(j){
+        var url = j.data && j.data[.mid];
+        if(!url){ statusEl.textContent = '该歌曲暂无可播放链接，换一首试试'; return; }
+        current = { mid:.mid, title:.title, singer:(.singer||[]).map(function(x){return x.name;}).join(' / '), cover:cov, url:url };
+        if(cov){ cover.src = cov; }
+        now.textContent = '正在播放：'+.title + (current.singer ? (' - '+current.singer) : '');
+        audio.src = url; audio.loop = true;
+        return audio.play().then(function(){ setPlayingUI(true); statusEl.textContent = '♪ 播放中'; closePanel(); })
+          .catch(function(){ statusEl.textContent = '浏览器拦截了自动播放，请点击唱盘中央的 ♪ 播放'; });
+      }).catch(function(e){ statusEl.textContent = '播放失败：'+(e.message||'网络错误'); });
+    }
+
+    function togglePlay(){
+      if(!audio.src){ openPanel(); return; }
+      if(audio.paused){
+        audio.play().then(function(){ setPlayingUI(true); }).catch(function(){ statusEl.textContent='播放被拦截，请重试'; });
+      } else { audio.pause(); setPlayingUI(false); }
+    }
+
+    fab.addEventListener('click', function(){ openPanel(); });
+    note.addEventListener('click', function(e){ e.stopPropagation(); togglePlay(); });
+    note.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); e.stopPropagation(); togglePlay(); } });
+    searchBtn.addEventListener('click', function(){ doSearch(searchInput.value); });
+    searchInput.addEventListener('keydown', function(e){ if(e.key==='Enter'){ doSearch(searchInput.value); } });
+    playBtn.addEventListener('click', function(){ togglePlay(); });
+    closeBtn.addEventListener('click', function(){ closePanel(); });
+    mask.addEventListener('click', function(e){ if(e.target===mask){ closePanel(); } });
+    window.addEventListener('keydown', function(e){ if(e.key==='Escape' && !mask.classList.contains('hidden')){ closePanel(); } });
+
+    audio.addEventListener('play', function(){ setPlayingUI(true); });
+    audio.addEventListener('pause', function(){ setPlayingUI(false); });
+  }
+
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); }
+  else { init(); }
+})();
+</script>
+
+	</body>
+</html>
