@@ -264,9 +264,9 @@
   .music-fab .note{position:absolute;z-index:3;right:-3px;top:-3px;width:26px;height:26px;border-radius:50%;
     background:linear-gradient(180deg,var(--accent2),var(--accent));color:#fff;font-size:12px;line-height:1;
     display:grid;place-items:center;box-shadow:0 3px 10px rgba(47,127,196,.45);font-family:var(--serif);
-    cursor:pointer;transition:transform .2s ease;touch-action:auto}
+    cursor:pointer;transition:transform .2s ease;touch-action:auto;pointer-events:none}
   .music-fab .note:hover{transform:scale(1.14)}
-	  .music-fab .note::before{content:"";position:absolute;inset:-11px;border-radius:50%}
+	  .music-fab .note::before{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none}
   .music-fab .muted-tag{position:absolute;z-index:3;left:-4px;bottom:-4px;padding:2px 6px;border-radius:999px;
     background:rgba(31,95,151,.9);color:#fff;font-size:10px;font-family:var(--serif);display:none;pointer-events:none}
   .music-fab.muted .muted-tag{display:block}
@@ -1110,7 +1110,7 @@ document.addEventListener('DOMContentLoaded',boot);
     /* ---------- 拖动悬浮窗（跟手 + 速度感知弹簧吸边） ---------- */
     var drag={active:false,moved:false,sx:0,sy:0,ox:0,oy:0,id:null,lastX:0,lastY:0,lastT:0,vx:0,vy:0};
     fab.addEventListener('pointerdown', function(e){
-      if(e.target.closest && e.target.closest('.note')) return;   /* 中央按钮不拖动 */
+      /* fab 统一处理所有指针事件（note 已 pointer-events:none 穿透，无需再判断 .note） */
       if(springRaf){ cancelAnimationFrame(springRaf); springRaf=null; }   /* 打断进行中的吸边 */
       drag.active=true; drag.moved=false; drag.id=e.pointerId;
       drag.sx=e.clientX; drag.sy=e.clientY;
@@ -1158,8 +1158,8 @@ document.addEventListener('DOMContentLoaded',boot);
     function snapToEdge(instant){
       var targetL = chooseEdge();
       var targetT = clamp(T, M, Math.max(M, innerHeight - fabH() - M));
+      if(springRaf){ cancelAnimationFrame(springRaf); springRaf=null; }   /* 先取消残留弹簧，防即时贴边被下一帧覆盖 */
       if(instant || reduceM){ L=targetL; T=targetT; applyPos(); savePos(); return; }
-      if(springRaf) cancelAnimationFrame(springRaf);
       var c = 2*Math.sqrt(SPRING_K)*SPRING_Z;        /* mass=1 临界阻尼系数 */
       var vx=drag.vx*0.28, vy=drag.vy*0.28, last=performance.now();   /* 只注入部分动量：保留甩动过冲而不飞屏 */
       function step(){
@@ -1179,8 +1179,8 @@ document.addEventListener('DOMContentLoaded',boot);
     }
 
     /* ---------- 中央按钮：播放/暂停（不触发拖动/开面板） ---------- */
-    note.addEventListener('pointerdown', function(e){ e.stopPropagation(); });
-    note.addEventListener('click', function(e){ e.stopPropagation(); togglePlay(); });
+    /* note 指针事件已穿透到 fab（pointer-events:none），不再拦截拖动 */
+    /* 中心点击改由 fab→endDrag→openPanel 处理；播放/暂停入口=面板 playBtn + 键盘 */
     note.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); e.stopPropagation(); togglePlay(); } });
 
     /* ---------- 面板控件 ---------- */
