@@ -238,7 +238,7 @@
   }
 
   /* ---------- 音乐播放器 v2：可拖动悬浮唱片 + 非全屏选曲面板（沿用原水蓝配色/字体） ---------- */
-  .music-fab{position:fixed;top:18px;right:18px;z-index:60;width:64px;height:64px;border-radius:50%;
+  .music-fab{position:fixed;top:18px;right:18px;z-index:9999;width:64px;height:64px;border-radius:50%;
     cursor:grab;border:none;padding:0;display:grid;place-items:center;touch-action:none;user-select:none;
     -webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;
     background:radial-gradient(circle at 50% 50%, #f6fbfe 0 12%, transparent 12%),
@@ -421,7 +421,7 @@
 
 
   <!-- 音乐播放器 v2：可拖动悬浮唱片 + 非全屏选曲面板 -->
-  <button class="music-fab" id="musicFab" type="button" aria-label="音乐播放器，点击选择音乐，可拖动">
+	  <button class="music-fab" id="musicFab" type="button" data-ver="v2026.10.06-fix3" title="音乐播放器 v2026.10.06-fix3 · 点击选曲 · 可拖动吸边" aria-label="音乐播放器，点击选择音乐，可拖动">
     <span class="disc" id="musicDisc">
       <img class="cover" id="musicCover" alt="" aria-hidden="true">
       <span class="label" aria-hidden="true"></span>
@@ -1109,45 +1109,63 @@ document.addEventListener('DOMContentLoaded',boot);
 
     /* ---------- 拖动悬浮窗（跟手 + 速度感知弹簧吸边） ---------- */
     var drag={active:false,moved:false,sx:0,sy:0,ox:0,oy:0,id:null,lastX:0,lastY:0,lastT:0,vx:0,vy:0};
-    fab.addEventListener('pointerdown', function(e){
-      /* fab 统一处理所有指针事件（note 已 pointer-events:none 穿透，无需再判断 .note） */
+    var suppressClick=false;
+    function dragStart(cx,cy,id){
       if(springRaf){ cancelAnimationFrame(springRaf); springRaf=null; }   /* 打断进行中的吸边 */
-      drag.active=true; drag.moved=false; drag.id=e.pointerId;
-      drag.sx=e.clientX; drag.sy=e.clientY;
+      drag.active=true; drag.moved=false; drag.id=id;
+      drag.sx=cx; drag.sy=cy;
       var r=fab.getBoundingClientRect();
       L=r.left; T=r.top;                                          /* 与视觉对齐，避免接管瞬间跳位 */
       drag.ox=L; drag.oy=T;
-      drag.lastX=e.clientX; drag.lastY=e.clientY; drag.lastT=performance.now(); drag.vx=0; drag.vy=0;
-      try{ fab.setPointerCapture(e.pointerId); }catch(_){}
-    });
-    fab.addEventListener('pointermove', function(e){
-      if(!drag.active || e.pointerId!==drag.id) return;
-      var dx=e.clientX-drag.sx, dy=e.clientY-drag.sy;
+      drag.lastX=cx; drag.lastY=cy; drag.lastT=performance.now(); drag.vx=0; drag.vy=0;
+      suppressClick=false;
+    }
+    function dragMove(cx,cy,id){
+      if(!drag.active || id!==drag.id) return;
+      var dx=cx-drag.sx, dy=cy-drag.sy;
       if(!drag.moved && (Math.abs(dx)>6 || Math.abs(dy)>6)){ drag.moved=true; fab.classList.add('dragging'); }
       if(drag.moved){
+        suppressClick=true;
         L = clamp(drag.ox+dx, M, Math.max(M, innerWidth-fabW()-M));
         T = clamp(drag.oy+dy, M, Math.max(M, innerHeight-fabH()-M));
         applyPos();
         var now=performance.now(), dt=(now-drag.lastT)/1000;
         if(dt>0){
-          var nvx=(e.clientX-drag.lastX)/dt, nvy=(e.clientY-drag.lastY)/dt;
+          var nvx=(cx-drag.lastX)/dt, nvy=(cy-drag.lastY)/dt;
           drag.vx = clamp(drag.vx*0.7 + nvx*0.3, -2000, 2000);   /* 平滑估计并限幅，防极端快甩飞出 */
           drag.vy = clamp(drag.vy*0.7 + nvy*0.3, -2000, 2000);
-          drag.lastX=e.clientX; drag.lastY=e.clientY; drag.lastT=now;
+          drag.lastX=cx; drag.lastY=cy; drag.lastT=now;
         }
       }
-    });
-    function endDrag(e){
+    }
+    function dragEnd(){
       if(!drag.active) return;
       drag.active=false; fab.classList.remove('dragging');
-      try{ fab.releasePointerCapture(drag.id); }catch(_){}
-      if(!drag.moved){ openPanel(); return; }        /* 视为点击 → 开面板 */
+      if(!drag.moved){ openPanel(); suppressClick=false; return; }   /* 视为点击 → 开面板 */
       var now=performance.now();
-      if(now - drag.lastT > 90){ drag.vx=0; drag.vy=0; }   /* 停顿后释放视为无速度 */
+      if(now - drag.lastT > 90){ drag.vx=0; drag.vy=0; }             /* 停顿后释放视为无速度 */
       snapToEdge();
     }
-    fab.addEventListener('pointerup', endDrag);
-    fab.addEventListener('pointercancel', endDrag);
+    if(window.PointerEvent){
+      fab.addEventListener('pointerdown', function(e){ try{ fab.setPointerCapture(e.pointerId); }catch(_){} dragStart(e.clientX,e.clientY,e.pointerId); });
+      fab.addEventListener('pointermove', function(e){ dragMove(e.clientX,e.clientY,e.pointerId); });
+      fab.addEventListener('pointerup', function(){ dragEnd(); });
+      fab.addEventListener('pointercancel', function(){ dragEnd(); });
+    } else {
+      /* 无 PointerEvent 环境（旧 iOS/微信内置/部分 WebView）降级到 mouse + touch，保证任何设备可拖可点 */
+      fab.addEventListener('mousedown', function(e){ e.preventDefault(); dragStart(e.clientX,e.clientY,'m'); });
+      document.addEventListener('mousemove', function(e){ if(drag.active) dragMove(e.clientX,e.clientY,'m'); });
+      document.addEventListener('mouseup', function(){ if(drag.active) dragEnd(); });
+      fab.addEventListener('touchstart', function(e){ var t=e.touches[0]; if(t) dragStart(t.clientX,t.clientY,'t'); }, {passive:true});
+      fab.addEventListener('touchmove', function(e){ var t=e.touches[0]; if(t) dragMove(t.clientX,t.clientY,'t'); }, {passive:true});
+      fab.addEventListener('touchend', function(){ dragEnd(); });
+      fab.addEventListener('touchcancel', function(){ dragEnd(); });
+    }
+    /* click 兜底：即使 pointer/mouse 链路未触发，纯点击仍开面板；拖动后 suppressClick 抑制误触发 */
+    fab.addEventListener('click', function(){
+      if(suppressClick){ suppressClick=false; return; }
+      if(mask.classList.contains('hidden')) openPanel();
+    });
 
     /* ---------- 速度感知落点 + 二阶弹簧（半隐式欧拉，transform 合成层） ---------- */
     function chooseEdge(){
@@ -1180,7 +1198,7 @@ document.addEventListener('DOMContentLoaded',boot);
 
     /* ---------- 中央按钮：播放/暂停（不触发拖动/开面板） ---------- */
     /* note 指针事件已穿透到 fab（pointer-events:none），不再拦截拖动 */
-    /* 中心点击改由 fab→endDrag→openPanel 处理；播放/暂停入口=面板 playBtn + 键盘 */
+    /* 中心点击改由 fab→dragEnd→openPanel 处理；播放/暂停入口=面板 playBtn + 键盘 */
     note.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); e.stopPropagation(); togglePlay(); } });
 
     /* ---------- 面板控件 ---------- */
