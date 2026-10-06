@@ -237,18 +237,19 @@
 	    .env-seal{animation:none}
   }
 
-  /* ---------- 音乐播放器（右上角唱片 + 选曲面板，沿用原水蓝配色/字体） ---------- */
+  /* ---------- 音乐播放器 v2：可拖动悬浮唱片 + 非全屏选曲面板（沿用原水蓝配色/字体） ---------- */
   .music-fab{position:fixed;top:18px;right:18px;z-index:60;width:64px;height:64px;border-radius:50%;
-    cursor:pointer;border:none;padding:0;display:grid;place-items:center;
+    cursor:grab;border:none;padding:0;display:grid;place-items:center;touch-action:none;user-select:none;
+    -webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;
     background:radial-gradient(circle at 50% 50%, #f6fbfe 0 12%, transparent 12%),
       repeating-radial-gradient(circle at 50% 50%, #1f5f97 0 2px, #2f7fc4 2px 4px);
     box-shadow:0 10px 30px rgba(31,95,151,.35), inset 0 0 0 2px rgba(255,255,255,.5);
-    transition:transform .3s cubic-bezier(.22,.61,.36,1), box-shadow .3s ease;
-    -webkit-tap-highlight-color:transparent}
-  .music-fab:hover{transform:scale(1.06);box-shadow:0 14px 36px rgba(31,95,151,.45), inset 0 0 0 2px rgba(255,255,255,.6)}
-  .music-fab:active{transform:scale(.95)}
+    transition:box-shadow .3s ease}
+  .music-fab:hover{box-shadow:0 14px 36px rgba(31,95,151,.45), inset 0 0 0 2px rgba(255,255,255,.6)}
+	  .music-fab.dragging{cursor:grabbing;transition:none;box-shadow:0 18px 44px rgba(31,95,151,.5)}
+	  .music-fab.snapping{box-shadow:0 16px 40px rgba(31,95,151,.46)}
   .music-fab:focus-visible{outline:2px solid var(--accent3);outline-offset:3px}
-  .music-fab .disc{position:absolute;inset:6px;border-radius:50%;overflow:hidden;
+  .music-fab .disc{position:absolute;inset:6px;border-radius:50%;overflow:hidden;pointer-events:none;
     background:repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.16) 0 1px, transparent 1px 5px),
       radial-gradient(circle at 50% 50%, #4aa6de 0 22%, #2f7fc4 22% 62%, #1f5f97 62%);
     animation:vinylSpin 6s linear infinite;animation-play-state:paused}
@@ -258,25 +259,31 @@
   .music-fab.playing .cover{opacity:1}
   .music-fab .label{position:absolute;z-index:2;left:50%;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;
     border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,#cfe6f6);
-    box-shadow:inset 0 0 0 1px rgba(47,127,196,.4);display:grid;place-items:center}
+    box-shadow:inset 0 0 0 1px rgba(47,127,196,.4);display:grid;place-items:center;pointer-events:none}
   .music-fab .label::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--accent3)}
-  .music-fab .note{position:absolute;z-index:3;right:-3px;top:-3px;width:24px;height:24px;border-radius:50%;
+  .music-fab .note{position:absolute;z-index:3;right:-3px;top:-3px;width:26px;height:26px;border-radius:50%;
     background:linear-gradient(180deg,var(--accent2),var(--accent));color:#fff;font-size:12px;line-height:1;
     display:grid;place-items:center;box-shadow:0 3px 10px rgba(47,127,196,.45);font-family:var(--serif);
-    transition:transform .2s ease}
-  .music-fab .note:hover{transform:scale(1.12)}
+    cursor:pointer;transition:transform .2s ease;touch-action:auto}
+  .music-fab .note:hover{transform:scale(1.14)}
+	  .music-fab .note::before{content:"";position:absolute;inset:-11px;border-radius:50%}
+  .music-fab .muted-tag{position:absolute;z-index:3;left:-4px;bottom:-4px;padding:2px 6px;border-radius:999px;
+    background:rgba(31,95,151,.9);color:#fff;font-size:10px;font-family:var(--serif);display:none;pointer-events:none}
+  .music-fab.muted .muted-tag{display:block}
   @keyframes vinylSpin{to{transform:rotate(360deg)}}
+	  @keyframes rowIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
   .music-mask{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:20px;
-    background:rgba(238,246,252,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    background:rgba(238,246,252,.42);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
     opacity:1;transition:opacity .35s ease}
   .music-mask.hidden{display:none}
   .music-mask.fade-out{opacity:0;pointer-events:none}
   .music-panel{width:min(420px,94vw);max-height:min(72vh,560px);display:flex;flex-direction:column;
-    background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(238,246,252,.97));
-    border:1px solid rgba(47,127,196,.3);border-radius:22px;overflow:hidden;
-    box-shadow:0 30px 70px rgba(31,95,151,.3), inset 0 1px 0 rgba(255,255,255,.85);
-    animation:pop .5s cubic-bezier(.22,.61,.36,1) both}
+    background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(238,246,252,.42));
+	    backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
+    border:1px solid rgba(255,255,255,.55);border-radius:22px;overflow:hidden;
+    box-shadow:0 30px 70px rgba(31,95,151,.28), inset 0 1px 0 rgba(255,255,255,.7), inset 0 0 0 1px rgba(47,127,196,.08);
+    animation:pop .5s cubic-bezier(.22,.61,.36,1) both;will-change:transform}
   .music-top{padding:18px 20px 12px;border-bottom:1px solid rgba(47,127,196,.14)}
   .music-brand{font-family:var(--hand);font-size:22px;color:var(--deep);display:flex;align-items:center;gap:8px}
   .music-brand .mini-disc{width:18px;height:18px;border-radius:50%;display:inline-block;
@@ -284,7 +291,7 @@
   .music-now{margin-top:8px;font-size:13px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .music-search{display:flex;gap:8px;margin-top:12px}
   .music-search input{flex:1;min-width:0;font-family:var(--serif);font-size:14px;color:var(--ink);
-    background:rgba(255,255,255,.85);border:1px solid rgba(47,127,196,.3);border-radius:999px;padding:9px 16px;
+    background:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.6);border-radius:999px;padding:9px 16px;
     outline:none;transition:border-color .2s,box-shadow .2s}
   .music-search input:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(74,166,222,.2)}
   .music-search button{font-family:var(--serif);font-size:14px;color:#fff;
@@ -303,15 +310,20 @@
   .music-row .msinger{display:block;font-size:12px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
   .music-row.active{background:rgba(47,127,196,.16);box-shadow:inset 0 0 0 1px rgba(47,127,196,.3)}
   .music-row.active .mtitle{color:var(--accent3);font-weight:600}
-  .music-status{padding:8px 20px 4px;text-align:center;font-size:12px;color:var(--soft);font-family:var(--serif)}
+  .music-status{padding:8px 20px 4px;text-align:center;font-size:12px;color:var(--soft);font-family:var(--serif);min-height:22px}
   .music-ctrl{display:flex;gap:10px;justify-content:center;padding:6px 20px 16px}
-  .music-ctrl button{font-family:var(--serif);font-size:13px;color:var(--deep);background:rgba(255,255,255,.7);
-    border:1px solid rgba(47,127,196,.3);border-radius:999px;padding:8px 20px;cursor:pointer;
+  .music-ctrl button{font-family:var(--serif);font-size:13px;color:var(--deep);background:rgba(255,255,255,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.6);border-radius:999px;padding:8px 20px;cursor:pointer;
     transition:background .2s,transform .2s}
-  .music-ctrl button:hover{background:#fff}
+  .music-ctrl button:hover{background:rgba(255,255,255,.68)}
   .music-ctrl button:active{transform:scale(.96)}
-  @media (max-width:420px){.music-panel{max-height:82vh}.music-fab{width:56px;height:56px;top:14px;right:14px}}
+  @media (max-width:420px){.music-panel{max-height:82vh}.music-fab{width:56px;height:56px}}
   @media (prefers-reduced-motion:reduce){.music-fab .disc{animation:none}.music-panel{animation:none}}
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    .music-panel{background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(238,246,252,.95))}
+    .music-search input{background:rgba(255,255,255,.9)}
+    .music-ctrl button{background:rgba(255,255,255,.85)}
+  }
 
 	</style>
 </head>
@@ -408,20 +420,21 @@
   </div>
 
 
-  <!-- 音乐播放器（右上角唱片 + 非全屏选曲面板） -->
-  <button class="music-fab" id="musicFab" type="button" aria-label="音乐播放器，点击选择音乐">
+  <!-- 音乐播放器 v2：可拖动悬浮唱片 + 非全屏选曲面板 -->
+  <button class="music-fab" id="musicFab" type="button" aria-label="音乐播放器，点击选择音乐，可拖动">
     <span class="disc" id="musicDisc">
       <img class="cover" id="musicCover" alt="" aria-hidden="true">
       <span class="label" aria-hidden="true"></span>
     </span>
-    <span class="note" id="musicNote" role="button" tabindex="0" aria-label="播放/暂停">♪</span>
+    <span class="muted-tag" id="musicMutedTag">点我开声</span>
+    <span class="note" id="musicNote" role="button" tabindex="0" aria-pressed="false" aria-label="播放/暂停">♪</span>
   </button>
   <audio id="bgmAudio" preload="none"></audio>
   <div class="music-mask hidden" id="musicMask" role="dialog" aria-modal="true" aria-label="选择音乐">
     <div class="music-panel" id="musicPanel">
       <div class="music-top">
         <div class="music-brand"><span class="mini-disc"></span>选择音乐</div>
-        <div class="music-now" id="musicNow">还没有播放，点一首喜欢的歌吧</div>
+        <div class="music-now" id="musicNow" aria-live="polite">还没有播放，点一首喜欢的歌吧</div>
         <div class="music-search">
           <input id="musicSearchInput" type="search" placeholder="搜索歌名或歌手…" autocomplete="off">
           <button id="musicSearchBtn" type="button">搜索</button>
@@ -430,7 +443,7 @@
       <div class="music-list" id="musicList"></div>
       <div class="music-status" id="musicStatus">支持在线搜索，选中即播放</div>
       <div class="music-ctrl">
-        <button id="musicPlayBtn" type="button">播放</button>
+        <button id="musicPlayBtn" type="button" aria-pressed="false">播放</button>
         <button id="musicCloseBtn" type="button">返回</button>
       </div>
     </div>
@@ -591,10 +604,16 @@ function buildBokeh(){
 function initParallax(){
   if(reduce||noHover) return;
   const layers=[...document.querySelectorAll('.layer')];
-  addEventListener('pointermove',e=>{
-    const nx=e.clientX/innerWidth-0.5, ny=e.clientY/innerHeight-0.5;
-    layers.forEach(l=>{ const d=+l.dataset.depth; l.style.transform=`translate(${nx*d*26}px,${ny*d*26}px)`; });
-  },{passive:true});
+	  let tx=0,ty=0,cx=0,cy=0,raf=null;
+	  addEventListener('pointermove',e=>{
+	    tx=e.clientX/innerWidth-0.5; ty=e.clientY/innerHeight-0.5;
+	    if(!raf) raf=requestAnimationFrame(loop);
+	  },{passive:true});
+	  function loop(){
+	    cx+=(tx-cx)*0.08; cy+=(ty-cy)*0.08;
+	    layers.forEach(l=>{ const d=+l.dataset.depth; l.style.transform='translate('+(cx*d*26)+'px,'+(cy*d*26)+'px)'; });
+	    if(Math.abs(tx-cx)>0.0006||Math.abs(ty-cy)>0.0006){ raf=requestAnimationFrame(loop); } else { raf=null; }
+	  }
 }
 
 /* ============================================================
@@ -610,12 +629,22 @@ function magnet(btn){
     return;
   }
   const strength=0.32, radius=130;
-  btn.addEventListener('pointermove',e=>{
-    const r=btn.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
-    const dx=e.clientX-cx, dy=e.clientY-cy;
-    if(Math.hypot(dx,dy)<radius) btn.style.transform=`translate(${dx*strength}px,${dy*strength}px)`;
-  });
-  btn.addEventListener('pointerleave',()=>{ btn.style.transform=''; });
+	  let ox=0, oy=0, pressed=false;
+	  const apply=()=>{ btn.style.transform='translate('+ox+'px,'+oy+'px)'+(pressed?' scale(.96)':''); };
+	  btn.addEventListener('pointermove',e=>{
+	    const r=btn.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
+	    const dx=e.clientX-cx, dy=e.clientY-cy;
+	    btn.style.transition='none';
+	    if(Math.hypot(dx,dy)<radius){ ox=dx*strength; oy=dy*strength; } else { ox=0; oy=0; }
+	    apply();
+	  });
+	  btn.addEventListener('pointerdown',()=>{ pressed=true; apply(); });
+	  btn.addEventListener('pointerup',()=>{ pressed=false; apply(); });
+	  btn.addEventListener('pointerleave',()=>{
+	    pressed=false; ox=0; oy=0;
+	    btn.style.transition='';
+	    btn.style.transform='';
+	  });
 }
 
 /* ============================================================
@@ -674,7 +703,12 @@ function bindEnvelope(){
     if(reduce){ env.classList.add('letter-out'); }
     else { setTimeout(()=>env.classList.add('letter-out'), 520); }
   };
-  flap.addEventListener('click',openEnv);
+  [flap,seal,letter].forEach(function(el){ el.setAttribute('role','button'); el.setAttribute('tabindex','0'); });
+	  const keyact=fn=>e=>{ if(e.key==='Enter'||e.key===' '||e.key==='Spacebar'){ e.preventDefault(); fn(); } };
+	  flap.addEventListener('keydown',keyact(openEnv));
+	  seal.addEventListener('keydown',keyact(openEnv));
+	  letter.addEventListener('keydown',keyact(()=>{ if(envState==='opened'){ envState='expanded'; expandFullLetter(); } }));
+	  flap.addEventListener('click',openEnv);
   seal.addEventListener('click',openEnv);
   letter.addEventListener('click',()=>{
     if(envState!=='opened') return;
@@ -721,8 +755,12 @@ function acceptLetter(){
   if(reduce){
     fl.classList.add('hidden'); showMemories(); return;
   }
-  card.classList.add('leaving');
-  setTimeout(()=>{ fl.classList.add('hidden'); card.classList.remove('leaving'); showMemories(); },700);
+  let done=false;
+	  const finish=()=>{ if(done) return; done=true;
+	    fl.classList.add('hidden'); card.classList.remove('leaving'); showMemories(); };
+	  card.addEventListener('transitionend', finish, {once:true});
+	  card.classList.add('leaving');
+	  setTimeout(finish, 900);
 }
 
 /* ============================================================
@@ -747,7 +785,7 @@ function showMemories(){
     if(it.caption){ const c=document.createElement('div'); c.className='cap'; c.textContent=fill(it.caption); fig.appendChild(c); }
     fig.addEventListener('click',()=>openLightbox(it));
     grid.appendChild(fig);
-    setTimeout(()=>fig.classList.add('in'), reduce?0:120+i*110);
+    setTimeout(()=>fig.classList.add('in'), reduce?0:Math.min(90+i*55, 720));
   });
   wrap.classList.remove('hidden');
   requestAnimationFrame(()=>wrap.classList.add('in'));
@@ -780,7 +818,7 @@ function openLightbox(it){
 }
 function bindLightbox(){
   const lb=$('lightbox');
-  const close=()=>{ lb.classList.remove('in'); setTimeout(()=>lb.classList.add('hidden'),400); };
+  const close=()=>{ if(lb.classList.contains('hidden')) return; let done=false; const fin=()=>{ if(done)return; done=true; lb.classList.add('hidden'); }; lb.addEventListener('transitionend', fin, {once:true}); lb.classList.remove('in'); setTimeout(fin, 500); };
   lb.addEventListener('click',close);
   $('lbClose').addEventListener('click',e=>{ e.stopPropagation(); close(); });
   addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });
@@ -904,39 +942,73 @@ document.addEventListener('DOMContentLoaded',boot);
 
 <script>
 /* ============================================================
-   音乐播放器模块（自包含；API: https://api.ygking.top，CORS *）
+   音乐播放器模块 v2（自包含；API: https://api.ygking.top，CORS *）
+   特性：可拖动悬浮唱片 / 点击开面板(与网络解耦) / 自动播放 AUTO_SONG
    本地验证可设 window.__MUSIC_MOCK = function(path){return jsonObj}
    ============================================================ */
 (function(){
   var API = 'https://api.ygking.top';
+  var AUTO_SONG = 'Ma référence';   // 进入页面自动播放；置空字符串则关闭
   var reduceM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function el(id){ return document.getElementById(id); }
 
   function init(){
-    var audio = el('bgmAudio'), fab = el('musicFab'), disc = el('musicDisc'),
-        note = el('musicNote'), cover = el('musicCover'),
-        mask = el('musicMask'), searchInput = el('musicSearchInput'), searchBtn = el('musicSearchBtn'),
+    var audio = el('bgmAudio'), fab = el('musicFab'), note = el('musicNote'),
+        cover = el('musicCover'), mask = el('musicMask'),
+        searchInput = el('musicSearchInput'), searchBtn = el('musicSearchBtn'),
         list = el('musicList'), now = el('musicNow'), statusEl = el('musicStatus'),
         playBtn = el('musicPlayBtn'), closeBtn = el('musicCloseBtn');
     if(!fab || !audio) return;
 
     var current = null, playing = false, seeded = false;
+    var POSKEY = 'miku_music_fab_pos';
 
+    /* ---------- 位置模型（transform 合成层，避免 top/left 触发 layout） ---------- */
+    var M = 8;                              /* 吸边留白 */
+    var L = 0, T = 0;                       /* fab 左上角相对视口坐标（px） */
+    var SPRING_K = 220, SPRING_Z = 0.75;    /* 卡片位移推荐刚度/阻尼（轻微过冲最有手感） */
+    var springRaf = null;
+    function fabW(){ return fab.offsetWidth || 64; }
+    function fabH(){ return fab.offsetHeight || 64; }
+    function applyPos(){ fab.style.transform = 'translate3d(' + L + 'px,' + T + 'px,0)'; }
+    function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+    function savePos(){ try{ localStorage.setItem(POSKEY, JSON.stringify({l:L,t:T})); }catch(e){} }
+    function loadPos(){
+      fab.style.left='0px'; fab.style.top='0px'; fab.style.right='auto'; fab.style.bottom='auto';
+      var p=null; try{ p=JSON.parse(localStorage.getItem(POSKEY)||'null'); }catch(e){}
+      if(p && typeof p.l==='number' && typeof p.t==='number'){
+        L = clamp(p.l, M, Math.max(M, innerWidth-fabW()-M));
+        T = clamp(p.t, M, Math.max(M, innerHeight-fabH()-M));
+      } else { L = innerWidth - fabW() - 18; T = 18; }   /* 默认右上角，与原视觉一致 */
+      applyPos();
+    }
+
+    /* ---------- 播放 UI 状态（含 aria-pressed 同步） ---------- */
     function setPlayingUI(p){
       playing = p;
       fab.classList.toggle('playing', p);
-      note.textContent = p ? '❚❚' : '♪';
-      if(playBtn) playBtn.textContent = p ? '暂停' : '播放';
+      if(note){ note.textContent = p ? '❚❚' : '♪'; note.setAttribute('aria-pressed', p?'true':'false'); }
+      if(playBtn){ playBtn.textContent = p ? '暂停' : '播放'; playBtn.setAttribute('aria-pressed', p?'true':'false'); }
     }
+
+    /* ---------- 面板开关（不依赖网络；从唱片所在方向展开） ---------- */
     function openPanel(){
+      var panel = el('musicPanel');
+      if(panel){
+        var originX = (L + fabW()/2 < innerWidth/2) ? 'left' : 'right';
+        var originY = (T + fabH()/2 < innerHeight/2) ? 'top' : 'bottom';
+        panel.style.transformOrigin = originY + ' ' + originX;
+      }
       mask.classList.remove('hidden','fade-out');
-      if(!seeded){ seeded = true; doSearch('生日快乐'); }
+      if(!seeded){ seeded = true; doSearch(AUTO_SONG || '生日快乐'); }
       setTimeout(function(){ try{ searchInput.focus(); }catch(e){} }, reduceM?0:300);
     }
     function closePanel(){
       mask.classList.add('fade-out');
       setTimeout(function(){ mask.classList.add('hidden'); }, reduceM?0:350);
     }
+
+    /* ---------- API（可被 __MUSIC_MOCK 拦截） ---------- */
     function apiGet(path){
       if(window.__MUSIC_MOCK){ return Promise.resolve(window.__MUSIC_MOCK(path)); }
       return fetch(API+path,{mode:'cors'}).then(function(r){
@@ -944,63 +1016,174 @@ document.addEventListener('DOMContentLoaded',boot);
         return r.json();
       });
     }
-    function fmtTime(sec){ if(!sec) return ''; var m=Math.floor(sec/60), =sec%60; return m+':'+('0'+).slice(-2); }
+    function fmtTime(sec){ if(!sec) return ''; var m=Math.floor(sec/60), s=sec%60; return m+':'+('0'+s).slice(-2); }
 
     function doSearch(kw){
       kw = (kw||'').trim();
       if(!kw){ statusEl.textContent = '请输入歌名或歌手'; return; }
       statusEl.textContent = '搜索中…'; list.innerHTML = '';
       apiGet('/api/search?keyword='+encodeURIComponent(kw)+'&type=song&num=20').then(function(j){
-        if(j.code !== 0){ statusEl.textContent = j.message || '未找到结果'; return; }
+        if(j.code !== 0){ statusEl.textContent = (j.message || '未找到结果'); return; }
         var arr = (j.data && j.data.list) || [];
         if(!arr.length){ statusEl.textContent = '没有找到「'+kw+'」'; return; }
         statusEl.textContent = '共 '+arr.length+' 首，点击即可播放';
-        arr.forEach(function(,i){
-          var singer = (.singer||[]).map(function(x){return x.name;}).join(' / ');
-          var cov = API+'/api/song/cover?mid='+encodeURIComponent(.mid)+'&size=150';
-          var row = document.createElement('div'); row.className='music-row'; row.setAttribute('data-mid', .mid);
+        var frag = document.createDocumentFragment();
+        arr.forEach(function(s,i){
+          var singer = (s.singer||[]).map(function(x){return x.name;}).join(' / ');
+          var cov = API+'/api/song/cover?mid='+encodeURIComponent(s.mid)+'&size=150';
+          var row = document.createElement('div'); row.className='music-row'; row.setAttribute('data-mid', s.mid);
           row.innerHTML = '<span class="idx">'+(i+1)+'</span>'+
             '<img class="mc" alt="" loading="lazy">'+
             '<span class="mtxt"><span class="mtitle"></span><span class="msinger"></span></span>';
           var img = row.querySelector('.mc');
           img.onerror = function(){ img.style.visibility='hidden'; };
           img.src = cov;
-          row.querySelector('.mtitle').textContent = .title || '未知歌曲';
-          row.querySelector('.msinger').textContent = singer + (.interval ? ('  ·  '+fmtTime(.interval)) : '');
-          row.addEventListener('click', function(){ playFromRow(, cov, row); });
-          list.appendChild(row);
+          row.querySelector('.mtitle').textContent = s.title || '未知歌曲';
+          row.querySelector('.msinger').textContent = singer + (s.interval ? ('  ·  '+fmtTime(s.interval)) : '');
+          row.addEventListener('click', function(){ playFromRow(s, cov, row, true); });
+          if(!reduceM){
+            row.style.animation='rowIn .34s cubic-bezier(.22,.61,.36,1) both';
+            row.style.animationDelay=Math.min(i*40,320)+'ms';
+            row.addEventListener('animationend', function(){ row.style.animation=''; row.style.animationDelay=''; });
+          }
+          frag.appendChild(row);
         });
+        list.appendChild(frag);
       }).catch(function(e){
-        statusEl.textContent = '搜索失败：'+(e.message||'网络错误')+'（部署到 GitHub Pages 后由浏览器直连 API 即可）';
+        statusEl.textContent = '搜索失败：'+(e.message||'网络错误')+'（部署后浏览器直连 API 即可）';
       });
     }
 
-    function playFromRow(, cov, row){
-      Array.prototype.forEach.call(list.querySelectorAll('.music-row'), function(r){ r.classList.remove('active'); });
-      row.classList.add('active');
-      statusEl.textContent = '解析播放链接…';
-      apiGet('/api/song/url?mid='+encodeURIComponent(.mid)+'&quality=320').then(function(j){
-        var url = j.data && j.data[.mid];
+    /* ---------- 播放指定歌曲；closeAfter=true 则播放后关面板 ---------- */
+    function playFromRow(s, cov, row, closeAfter){
+      if(row){
+        Array.prototype.forEach.call(list.querySelectorAll('.music-row'), function(r){ r.classList.remove('active'); });
+        row.classList.add('active');
+      }
+      if(closeAfter) statusEl.textContent = '解析播放链接…';
+      apiGet('/api/song/url?mid='+encodeURIComponent(s.mid)+'&quality=320').then(function(j){
+        var url = j.data && j.data[s.mid];
         if(!url){ statusEl.textContent = '该歌曲暂无可播放链接，换一首试试'; return; }
-        current = { mid:.mid, title:.title, singer:(.singer||[]).map(function(x){return x.name;}).join(' / '), cover:cov, url:url };
+        current = { mid:s.mid, title:s.title, singer:(s.singer||[]).map(function(x){return x.name;}).join(' / '), url:url };
         if(cov){ cover.src = cov; }
-        now.textContent = '正在播放：'+.title + (current.singer ? (' - '+current.singer) : '');
+        now.textContent = '正在播放：'+s.title + (current.singer ? (' - '+current.singer) : '');
         audio.src = url; audio.loop = true;
-        return audio.play().then(function(){ setPlayingUI(true); statusEl.textContent = '♪ 播放中'; closePanel(); })
-          .catch(function(){ statusEl.textContent = '浏览器拦截了自动播放，请点击唱盘中央的 ♪ 播放'; });
+        if(closeAfter){ statusEl.textContent = '♪ 播放中'; closePanel(); }
+        return attemptPlay();
       }).catch(function(e){ statusEl.textContent = '播放失败：'+(e.message||'网络错误'); });
     }
 
+    /* ---------- 尝试播放；被拦则静音自动播放 + 首次交互解除静音 ---------- */
+    function attemptPlay(){
+      return audio.play().then(function(){
+        fab.classList.remove('muted');
+      }).catch(function(){
+        audio.muted = true;
+        return audio.play().then(function(){
+          fab.classList.add('muted');
+        }).catch(function(){
+          audio.muted = false;
+        }).then(function(){ armUnmute(); });
+      });
+    }
+    function armUnmute(){
+      var f=function(){
+        audio.muted=false; fab.classList.remove('muted');
+        try{ audio.play(); }catch(e){}
+        removeEventListener('pointerdown',f,true);
+        removeEventListener('touchstart',f,true);
+        removeEventListener('keydown',f,true);
+      };
+      addEventListener('pointerdown',f,true);
+      addEventListener('touchstart',f,true);
+      addEventListener('keydown',f,true);
+    }
+
+    /* ---------- 播放/暂停切换 ---------- */
     function togglePlay(){
       if(!audio.src){ openPanel(); return; }
       if(audio.paused){
-        audio.play().then(function(){ setPlayingUI(true); }).catch(function(){ statusEl.textContent='播放被拦截，请重试'; });
+        attemptPlay();
       } else { audio.pause(); setPlayingUI(false); }
     }
 
-    fab.addEventListener('click', function(){ openPanel(); });
+    /* ---------- 拖动悬浮窗（跟手 + 速度感知弹簧吸边） ---------- */
+    var drag={active:false,moved:false,sx:0,sy:0,ox:0,oy:0,id:null,lastX:0,lastY:0,lastT:0,vx:0,vy:0};
+    fab.addEventListener('pointerdown', function(e){
+      if(e.target.closest && e.target.closest('.note')) return;   /* 中央按钮不拖动 */
+      if(springRaf){ cancelAnimationFrame(springRaf); springRaf=null; }   /* 打断进行中的吸边 */
+      drag.active=true; drag.moved=false; drag.id=e.pointerId;
+      drag.sx=e.clientX; drag.sy=e.clientY;
+      var r=fab.getBoundingClientRect();
+      L=r.left; T=r.top;                                          /* 与视觉对齐，避免接管瞬间跳位 */
+      drag.ox=L; drag.oy=T;
+      drag.lastX=e.clientX; drag.lastY=e.clientY; drag.lastT=performance.now(); drag.vx=0; drag.vy=0;
+      try{ fab.setPointerCapture(e.pointerId); }catch(_){}
+    });
+    fab.addEventListener('pointermove', function(e){
+      if(!drag.active || e.pointerId!==drag.id) return;
+      var dx=e.clientX-drag.sx, dy=e.clientY-drag.sy;
+      if(!drag.moved && (Math.abs(dx)>6 || Math.abs(dy)>6)){ drag.moved=true; fab.classList.add('dragging'); }
+      if(drag.moved){
+        L = clamp(drag.ox+dx, M, Math.max(M, innerWidth-fabW()-M));
+        T = clamp(drag.oy+dy, M, Math.max(M, innerHeight-fabH()-M));
+        applyPos();
+        var now=performance.now(), dt=(now-drag.lastT)/1000;
+        if(dt>0){
+          var nvx=(e.clientX-drag.lastX)/dt, nvy=(e.clientY-drag.lastY)/dt;
+          drag.vx = clamp(drag.vx*0.7 + nvx*0.3, -2000, 2000);   /* 平滑估计并限幅，防极端快甩飞出 */
+          drag.vy = clamp(drag.vy*0.7 + nvy*0.3, -2000, 2000);
+          drag.lastX=e.clientX; drag.lastY=e.clientY; drag.lastT=now;
+        }
+      }
+    });
+    function endDrag(e){
+      if(!drag.active) return;
+      drag.active=false; fab.classList.remove('dragging');
+      try{ fab.releasePointerCapture(drag.id); }catch(_){}
+      if(!drag.moved){ openPanel(); return; }        /* 视为点击 → 开面板 */
+      var now=performance.now();
+      if(now - drag.lastT > 90){ drag.vx=0; drag.vy=0; }   /* 停顿后释放视为无速度 */
+      snapToEdge();
+    }
+    fab.addEventListener('pointerup', endDrag);
+    fab.addEventListener('pointercancel', endDrag);
+
+    /* ---------- 速度感知落点 + 二阶弹簧（半隐式欧拉，transform 合成层） ---------- */
+    function chooseEdge(){
+      var w=fabW();
+      var projectedCx = (L + w/2) + drag.vx*0.12;    /* 综合当前中心 + 水平速度预测落点 */
+      return (projectedCx < innerWidth/2) ? M : Math.max(M, innerWidth - w - M);
+    }
+    function snapToEdge(instant){
+      var targetL = chooseEdge();
+      var targetT = clamp(T, M, Math.max(M, innerHeight - fabH() - M));
+      if(instant || reduceM){ L=targetL; T=targetT; applyPos(); savePos(); return; }
+      if(springRaf) cancelAnimationFrame(springRaf);
+      var c = 2*Math.sqrt(SPRING_K)*SPRING_Z;        /* mass=1 临界阻尼系数 */
+      var vx=drag.vx*0.28, vy=drag.vy*0.28, last=performance.now();   /* 只注入部分动量：保留甩动过冲而不飞屏 */
+      function step(){
+        var now=performance.now();
+        var dt=Math.min((now-last)/1000, 1/30); last=now;   /* clamp 防跳帧爆炸 */
+        var ax = SPRING_K*(targetL-L) - c*vx;
+        var ay = SPRING_K*(targetT-T) - c*vy;
+        vx += ax*dt; vy += ay*dt;
+        L  += vx*dt; T += vy*dt;
+        applyPos();
+        if(Math.abs(targetL-L)<0.5 && Math.abs(targetT-T)<0.5 && Math.abs(vx)<8 && Math.abs(vy)<8){
+          L=targetL; T=targetT; applyPos(); springRaf=null; savePos(); return;   /* 死区收敛 */
+        }
+        springRaf=requestAnimationFrame(step);
+      }
+      springRaf=requestAnimationFrame(step);
+    }
+
+    /* ---------- 中央按钮：播放/暂停（不触发拖动/开面板） ---------- */
+    note.addEventListener('pointerdown', function(e){ e.stopPropagation(); });
     note.addEventListener('click', function(e){ e.stopPropagation(); togglePlay(); });
     note.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); e.stopPropagation(); togglePlay(); } });
+
+    /* ---------- 面板控件 ---------- */
     searchBtn.addEventListener('click', function(){ doSearch(searchInput.value); });
     searchInput.addEventListener('keydown', function(e){ if(e.key==='Enter'){ doSearch(searchInput.value); } });
     playBtn.addEventListener('click', function(){ togglePlay(); });
@@ -1010,6 +1193,29 @@ document.addEventListener('DOMContentLoaded',boot);
 
     audio.addEventListener('play', function(){ setPlayingUI(true); });
     audio.addEventListener('pause', function(){ setPlayingUI(false); });
+
+    /* ---------- 自动播放 AUTO_SONG（进页面即尝试，不打开面板） ---------- */
+    function autoPlay(){
+      if(!AUTO_SONG) return;
+      apiGet('/api/search?keyword='+encodeURIComponent(AUTO_SONG)+'&type=song&num=1').then(function(j){
+        var =j && j.data && j.data.list && j.data.list[0];
+        if(!){ return; }
+        var cov = API+'/api/song/cover?mid='+encodeURIComponent(.mid)+'&size=150';
+        return apiGet('/api/song/url?mid='+encodeURIComponent(.mid)+'&quality=320').then(function(u){
+          var url = u && u.data && u.data[.mid];
+          if(!url){ return; }
+          current = { mid:.mid, title:.title, singer:(.singer||[]).map(function(x){return x.name;}).join(' / '), url:url };
+          cover.src = cov;
+          now.textContent = '正在播放：'+.title + (current.singer ? (' - '+current.singer) : '');
+          audio.src = url; audio.loop = true;
+          return attemptPlay();
+        });
+      }).catch(function(){});
+    }
+
+    loadPos();
+    window.addEventListener('resize', function(){ snapToEdge(true); });
+    autoPlay();
   }
 
   if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); }
